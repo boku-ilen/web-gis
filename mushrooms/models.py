@@ -1,17 +1,22 @@
 from djgeojson.fields import PolygonField
 from django.db import models
+from django.contrib.postgres.fields import ArrayField
 
 
-class MushroomSpot(models.Model):
+class EntryDefinition(models.Model):
+    
+    name = models.CharField(max_length=256)
+    field_definition = models.JSONField(db_index=True)
 
-    title = models.CharField(max_length=256)
-    description = models.TextField()
-    picture = models.ImageField()
+
+class UserEntry(models.Model):
+
+    field_data = models.JSONField(db_index=True)
     geom = PolygonField()
 
-    def __str__(self):
-        return self.title
 
-    @property
-    def picture_url(self):
-        return self.picture.url
+class ProjectDefinition(models.Model):
+    
+    name = models.CharField(max_length=256)
+    description = models.TextField()
+    entry_definitions = models.ManyToManyField(EntryDefinition)
