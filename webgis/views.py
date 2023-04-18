@@ -15,4 +15,16 @@ def create_entry(request, project_name):
 
 
 class ProjectView(TemplateView):
-    template_name = "index.html"
+    template_name = "project.html"
+
+    def get_context_data(self, *args, **kwargs):
+        context = TemplateView.get_context_data(self, *args, **kwargs)
+
+        # TODO: Validate the project_name by getting the corresponding ProjectDefinition
+
+        context['message'] = self.project_name
+        return context
+
+    @property
+    def project_name(self):
+       return self.kwargs['project_name']
