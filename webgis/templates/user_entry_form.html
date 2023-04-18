@@ -1,0 +1,29 @@
+{% load leaflet_tags %}
+{% load static %}
+<html>
+    <body>
+        <h1>User Entry</h1>
+        <div id="container"></div>
+      </body>
+  <head>
+    {% leaflet_js %}
+    {% leaflet_css %}
+    <style>
+      .leaflet-container { height: 100%; }
+    </style>
+    <script src="{% static 'ui_reflections.js' %}"></script>
+    <script>
+        let test1 = "abc"
+        let test2 = new Image(123, 123)
+        let test3 = false
+            
+        let gui_element1 = type_gui_reflections[test1.constructor.name]()
+        let gui_element2 = type_gui_reflections[test2.constructor.name]()
+        let gui_element3 = type_gui_reflections[test3.constructor.name]()
+        var container = document.getElementById('container');
+        container.appendChild(gui_element1);
+        container.appendChild(gui_element2);
+        container.appendChild(gui_element3);
+    </script>
+  </head>
+</html>

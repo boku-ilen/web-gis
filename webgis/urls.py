@@ -25,5 +25,6 @@ from .views import get_entry_data
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^$', TemplateView.as_view(template_name='index.html'), name='home'),
-    url(r'^data.geojson$', get_entry_data(), name='data')
+    url(r'^data.geojson$', get_entry_data(), name='data'),
+    url(r'^user_entry/', TemplateView.as_view(template_name='user_entry_form.html'), name='user_entry'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
