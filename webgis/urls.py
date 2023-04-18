@@ -19,12 +19,14 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.views.generic import TemplateView
 
-from .views import get_entry_data
+from . import views
 
 
 urlpatterns = [
+    url(r'^(?P<project_name>\w+)/$', views.ProjectView.as_view(), name="project"),
+    url(r'^(?P<project_name>\w+)/create/$', views.create_entry, name="project"),
+    url(r'^(?P<project_name>\w+)/user-entry', TemplateView.as_view(template_name='user_entry_form.html'), name='user_entry'),
     url(r'^admin/', admin.site.urls),
     url(r'^$', TemplateView.as_view(template_name='index.html'), name='home'),
-    url(r'^data.geojson$', get_entry_data(), name='data'),
-    url(r'^user_entry/', TemplateView.as_view(template_name='user_entry_form.html'), name='user_entry'),
+    url(r'^data.geojson$', views.get_entry_data(), name='data')
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
