@@ -26,7 +26,7 @@ urlpatterns = [
     url(r'^$', views.HomeView.as_view(), name='home'),
     url(r'^(?P<project_url>\w+)/$', views.ProjectView.as_view(), name="project"),
     url(r'^(?P<project_url>\w+)/create/$', views.create_entry, name="project"),
-    url(r'^(?P<project_url>\w+)/user-entry', TemplateView.as_view(template_name='user_entry_form.html'), name='user_entry'),
+    url(r'^(?P<project_url>\w+)/user-entry', views.UserEntryView.as_view(), name='user_entry'),
     url(r'^admin/', admin.site.urls),
     url(r'^data.geojson$', views.get_entry_data(), name='data')
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

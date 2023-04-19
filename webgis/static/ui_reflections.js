@@ -29,6 +29,21 @@ const type_gui_reflections = {
 
         return container;
     },
+    "Integer": (name, value) => {
+        let container = document.createElement("container"); 
+
+        let label = document.createElement("label");
+        let description = document.createTextNode(name);
+        label.appendChild(description);
+
+        let number_input = document.createElement("input");
+        number_input.type = "number";
+
+        container.appendChild(label);
+        container.appendChild(number_input);
+
+        return container;
+    },
     "HTMLImageElement": (name, value) => {
         let container = document.createElement("container"); 
 
