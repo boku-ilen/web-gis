@@ -1,62 +1,57 @@
+function createLabel(name) {
+    let label = document.createElement("label");
+    label.setAttribute("for", name)
+    let description = document.createTextNode(name);
+    label.appendChild(description);
+    
+    return label
+} 
+
 const type_gui_reflections = {
     "Boolean": (name, value) => {
-        let container = document.createElement("container"); 
+        let label = createLabel(name)
 
-        let label = document.createElement("label");
-        let description = document.createTextNode(name);
-        label.appendChild(description);
+        let checkbox = document.createElement("select");
+        checkbox.setAttribute("name", name)
+        checkbox.type = "select";
+        let yesOption = document.createElement("option");
+        yesOption.setAttribute("value", 1)
+        yesOption.innerHTML = "yes"
+        let noOption = document.createElement("option");
+        noOption.setAttribute("value", 0)
+        noOption.innerHTML = "no"
+        checkbox.appendChild(noOption)
+        checkbox.appendChild(yesOption)
 
-        let checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-
-        container.appendChild(label);
-        container.appendChild(checkbox);
-
-        return container;
+        return {"label": label, "input": checkbox};
     },
     "String": (name, value) => {
-        let container = document.createElement("container"); 
+        let label = createLabel(name)
 
-        let label = document.createElement("label");
-        let description = document.createTextNode(name);
-        label.appendChild(description);
+        let textInput = document.createElement("input");
+        textInput.setAttribute("name", name)
+        textInput.type = "text";
 
-        let text_input = document.createElement("input");
-        text_input.type = "text";
-
-        container.appendChild(label);
-        container.appendChild(text_input);
-
-        return container;
+        return {"label": label, "input": textInput};
     },
     "Integer": (name, value) => {
-        let container = document.createElement("container"); 
+        let label = createLabel(name)
 
-        let label = document.createElement("label");
-        let description = document.createTextNode(name);
-        label.appendChild(description);
+        let numberInput = document.createElement("input");
+        numberInput.setAttribute("name", name)
+        numberInput.type = "number";
 
-        let number_input = document.createElement("input");
-        number_input.type = "number";
-
-        container.appendChild(label);
-        container.appendChild(number_input);
-
-        return container;
+        return {"label": label, "input": numberInput};
     },
     "HTMLImageElement": (name, value) => {
-        let container = document.createElement("container"); 
-
-        let label = document.createElement("label");
+        let label = createLabel(name)
 
         let imageButton = document.createElement("input");
+        imageButton.setAttribute("name", name)
         imageButton.type = "file";
         imageButton.accept = "image"; 
 
-        container.appendChild(label);
-        container.appendChild(imageButton);
-
-        return container;
+        return {"label": label, "input": imageButton};
     },
 } 
 
