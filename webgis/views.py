@@ -21,8 +21,10 @@ class ProjectView(TemplateView):
         context = TemplateView.get_context_data(self, *args, **kwargs)
 
         # TODO: Validate the project_name by getting the corresponding ProjectDefinition
+        project = ProjectDefinition.objects.get(url=self.project_name)
 
-        context['message'] = self.project_name
+        context['message'] = project.name
+
         return context
 
     @property

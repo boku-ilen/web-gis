@@ -17,6 +17,7 @@ class UserEntry(models.Model):
 
 class ProjectDefinition(models.Model):
     
+    url = models.CharField(max_length=16, unique=True)
     name = models.CharField(max_length=256)
     description = models.TextField()
     entry_definitions = models.ManyToManyField(EntryDefinition)

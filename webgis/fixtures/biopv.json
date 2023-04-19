@@ -1,0 +1,22 @@
+[
+    {
+        "model": "webgis.EntryDefinition",
+        "pk": 1,
+        "fields": {
+            "name": "Photovoltaik akzeptabel?",
+            "field_definition": {
+                "Akzeptabel": "bool"
+            }
+        }
+    },
+    {
+      "model": "webgis.ProjectDefinition",
+      "pk": 2,
+      "fields": {
+        "url": "biopv",
+        "name": "BioPV",
+        "description": "Photovoltaik, Menschen, und die Biosphäre: ein transdisziplinärer Ansatz ",
+        "entry_definitions": [1]
+      }
+    }
+]
