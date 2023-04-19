@@ -23,10 +23,10 @@ from . import views
 
 
 urlpatterns = [
-    url(r'^(?P<project_name>\w+)/$', views.ProjectView.as_view(), name="project"),
-    url(r'^(?P<project_name>\w+)/create/$', views.create_entry, name="project"),
-    url(r'^(?P<project_name>\w+)/user-entry', views.UserEntryView.as_view(), name='user_entry'),
+    url(r'^$', views.HomeView.as_view(), name='home'),
+    url(r'^(?P<project_url>\w+)/$', views.ProjectView.as_view(), name="project"),
+    url(r'^(?P<project_url>\w+)/create/$', views.create_entry, name="project"),
+    url(r'^(?P<project_url>\w+)/user-entry', views.UserEntryView.as_view(), name='user_entry'),
     url(r'^admin/', admin.site.urls),
-    url(r'^$', TemplateView.as_view(template_name='index.html'), name='home'),
     url(r'^data.geojson$', views.get_entry_data(), name='data')
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
