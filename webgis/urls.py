@@ -25,7 +25,7 @@ from . import views
 urlpatterns = [
     url(r'^(?P<project_name>\w+)/$', views.ProjectView.as_view(), name="project"),
     url(r'^(?P<project_name>\w+)/create/$', views.create_entry, name="project"),
-    url(r'^(?P<project_name>\w+)/user-entry', TemplateView.as_view(template_name='user_entry_form.html'), name='user_entry'),
+    url(r'^(?P<project_name>\w+)/user-entry', views.UserEntryView.as_view(), name='user_entry'),
     url(r'^admin/', admin.site.urls),
     url(r'^$', TemplateView.as_view(template_name='index.html'), name='home'),
     url(r'^data.geojson$', views.get_entry_data(), name='data')
