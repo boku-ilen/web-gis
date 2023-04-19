@@ -30,5 +30,28 @@
         "description": "Photovoltaik, Menschen, und die Biosphäre: ein transdisziplinärer Ansatz ",
         "entry_definitions": [1, 2]
       }
+    },
+    {
+      "model": "webgis.EntryDefinition",
+      "pk": 3,
+      "fields": {
+          "name": "Meine meinung",
+          "field_definition": {
+              "Okay": "Boolean",
+              "Zustimmung": "Integer",
+              "Kommentar": "String",
+              "Bild": "HTMLImageElement"
+          }
+        }
+    },
+    {
+      "model": "webgis.ProjectDefinition",
+      "pk": 3,
+      "fields": {
+        "url": "demo",
+        "name": "Demo",
+        "description": "Ein DemoGRAPHISCHER Ansatz",
+        "entry_definitions": [3]
+      }
     }
 ]
