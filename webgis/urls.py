@@ -17,16 +17,18 @@ from django.conf import settings
 from django.conf.urls import url
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.urls import path, register_converter
 from django.views.generic import TemplateView
 
-from . import views
+from . import converters, views
 
+register_converter(converters.FloatUrlParameterConverter, 'float')
 
 urlpatterns = [
     url(r'^$', views.HomeView.as_view(), name='home'),
-    url(r'^(?P<project_url>\w+)/$', views.ProjectView.as_view(), name="project"),
-    url(r'^(?P<project_url>\w+)/create/$', views.create_entry, name="project"),
-    url(r'^(?P<project_url>\w+)/user-entry', views.UserEntryView.as_view(), name='user_entry'),
+    path('<str:project_url>/', views.ProjectView.as_view(), name="project"),
+    path('<str:project_url>/create/$', views.create_entry, name="project"),
+    path('<str:project_url>/user-entry/<float:lat>/<float:lon>', views.UserEntryView.as_view(), name='user_entry'),
     url(r'^admin/', admin.site.urls),
     url(r'^data.geojson$', views.get_entry_data(), name='data')
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

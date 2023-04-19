@@ -41,7 +41,7 @@ class ProjectView(TemplateView):
             # If there is no project with the given URL, output a 404 page
             raise Http404
         
-        context['message'] = project.name
+        context['project_name'] = project.name
 
         return context
 
