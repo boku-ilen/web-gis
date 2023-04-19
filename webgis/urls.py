@@ -30,5 +30,4 @@ urlpatterns = [
     path('<str:project_url>/create/$', views.create_entry, name="project"),
     path('<str:project_url>/user-entry/<float:lat>/<float:lon>', views.UserEntryView.as_view(), name='user_entry'),
     url(r'^admin/', admin.site.urls),
-    url(r'^data.geojson$', views.get_entry_data(), name='data')
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
