@@ -1,4 +1,5 @@
 {% load leaflet_tags %}
+{% load static %}
 <html>
   <head>
     {% leaflet_js %}
@@ -6,48 +7,50 @@
     <style>
       .leaflet-container { height: 100%; }
     </style>
+    <script src="{% static 'ui_reflections.js' %}"></script>
     <script>
-      var dataurl = '{% url "data" %}';
 
       window.addEventListener("map:init", function (event) {
         var map = event.detail.map;
-        // Download GeoJSON data with Ajax
-        fetch(dataurl)
-          .then(function(resp) {
-            return resp.json();
-          })
-          .then(function(data) {
-            L.geoJson(data, {
-              onEachFeature: function onEachFeature(feature, layer) {
-                var props = feature.properties;
-                var content = `<img width="300" src="${props.field_data.image}"/><h3>${props.field_data}</h3><p>${props.description}</p>`;
-                layer.bindPopup(content);
-            }}).addTo(map);
-          });
 
         function onLocationFound(e) {
-          var radius = e.accuracy / 2;
-          console.log(e);
-    
           var current_position = L.marker([e.coords.latitude, e.coords.longitude]).addTo(map)
             .bindPopup("You are here").openPopup();
-        }
+          }
 
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(onLocationFound);
         }
         
         map.on('click', function(e) {        
-          var popLocation = e.latlng;
-          let url = '{{ project_url }}'
-          var popup = L.popup()
-          .setLatLng(popLocation)
-          .setContent(`
-          <input id="btntest" type="button" value="Setze" 
-              onclick="window.location.href = '/${url}/user-entry/${popLocation.lat}/${popLocation.lng}'" />
-          `)
-          .openOn(map);        
-        });
+            var popLocation = e.latlng;
+            let url = '{{ project_url }}'
+            var popup = L.popup()
+            .setLatLng(popLocation)
+            .setContent(`
+            <input id="btntest" type="button" value="Setze" 
+                onclick="window.location.href = '/${url}/user-entry/${popLocation.lat}/${popLocation.lng}'" />
+            `)
+            .openOn(map);        
+          });
+
+          var entries = JSON.parse('{{ entries|escapejs }}');
+
+          for (id in entries) {
+            console.log(entries[id]);
+
+            var name = entries[id].fields.definition[0];
+            var def = entries[id].fields.definition[1];
+
+            marker_html = `<h2>${name}</h2>`
+
+            for (field_name in def) {
+              marker_html += `<div>${type_display_reflections[def[field_name]](field_name, entries[id].fields.field_data[field_name]).outerHTML}</div>`;
+            }
+
+            var marker = L.geoJSON(JSON.parse(entries[id].fields.geom)).addTo(map)
+              .bindPopup(marker_html).openPopup();
+          }
       });
     </script>
   </head>

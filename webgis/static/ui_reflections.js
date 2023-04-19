@@ -60,3 +60,57 @@ const type_gui_reflections = {
     },
 } 
 
+const type_display_reflections = {
+    "Boolean": (name, value) => {
+        let container = document.createElement("container");
+
+        var value_string = value ? "Ja" : "Nein";
+
+        let label = document.createElement("label");
+        let description = document.createTextNode(name + ": " + value_string);
+
+        label.appendChild(description);
+        container.appendChild(label);
+
+        return container;
+    },
+    "String": (name, value) => {
+        let container = document.createElement("container");
+
+        let label = document.createElement("label");
+        let description = document.createTextNode(name + ": " + value);
+
+        label.appendChild(description);
+        container.appendChild(label);
+
+        return container;
+    },
+    "Integer": (name, value) => {
+        let container = document.createElement("container");
+
+        let label = document.createElement("label");
+        let description = document.createTextNode(name + ": " + value);
+
+        label.appendChild(description);
+        container.appendChild(label);
+
+        return container;
+    },
+    "HTMLImageElement": (name, value) => {
+        let container = document.createElement("container");
+
+        let label = document.createElement("label");
+        let description = document.createTextNode(name + ": ");
+
+        const image = new Image();
+        image.style.width = 200;
+        image.src = value;
+
+        label.appendChild(description);
+        label.appendChild(image);
+        container.appendChild(label);
+
+        return container;
+    },
+} 
+

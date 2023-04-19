@@ -5,10 +5,7 @@ from .models import ProjectDefinition, UserEntry
 from django.views.generic import TemplateView
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404
-
-
-def get_entry_data():
-    return GeoJSONLayerView.as_view(model=UserEntry, properties=('field_data'))
+from django.core import serializers
 
 
 def create_entry(request, project_url):
@@ -42,6 +39,10 @@ class ProjectView(TemplateView):
             raise Http404
         
         context['project_name'] = project.name
+
+        entries = UserEntry.objects.filter(project=self.project_url)
+
+        context["entries"] = serializers.serialize("json", entries.all(), use_natural_foreign_keys=True)
 
         return context
 
