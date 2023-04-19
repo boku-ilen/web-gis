@@ -36,11 +36,23 @@
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(onLocationFound);
         }
+        
+        map.on('click', function(e) {        
+          var popLocation = e.latlng;
+          let url = '{{ project_url }}'
+          var popup = L.popup()
+          .setLatLng(popLocation)
+          .setContent(`
+          <input id="btntest" type="button" value="Setze" 
+              onclick="window.location.href = '/${url}/user-entry/${popLocation.lat}/${popLocation.lng}'" />
+          `)
+          .openOn(map);        
+        });
       });
     </script>
   </head>
   <body>
-    <h1>{{ message }} Web GIS</h1>
+    <h1>{{ project_name }} Web GIS</h1>
     {% leaflet_map "main" %}
   </body>
 </html>

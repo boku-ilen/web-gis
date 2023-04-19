@@ -3,12 +3,20 @@
 <html>
     <body>
         <h1>User Entry</h1>
-        <select name="entryDefs" id="entryDefs" onchange="loadReflections()">
+        <!-- Only show dropdown options if there are actually options to choose from -->
+        {% if entry_definitions|length > 1 %}
+        <select name="entryDefs" id="entryDefs" onchange="loadReflections(getIdFromHtml())">
           {% for entry_def in entry_definitions %}
           <option value="{{ entry_def.id }}">{{ entry_def.name }}</option>
           {% endfor %}
         </select>
-        <div id="container"></div>
+        {% endif %}
+        <div id="entry-form">
+        </div>
+        {% leaflet_map "entry"  %}
+        <div>
+          <input type="submit" value="save">
+        </div>
       </body>
   <head>
     {% leaflet_js %}
@@ -18,12 +26,11 @@
     <script src="{% static 'ui_reflections.js' %}"></script>
     <script>
       let entryDefinitions = JSON.parse('{{ entry_definitions_js|escapejs }}')
-      function loadReflections() {
-        // Clear container from possible previous selection
-        let container = document.getElementById('container');
-        container.replaceChildren();
-        // Get the field definitions of current entry definition using the pk(id) from HTML
-        let entryDefPk = document.getElementById("entryDefs").value;
+      function loadReflections(entryDefPk) {
+        // Clear form from possible previous selection
+        let form = document.getElementById('entry-form');
+        form.replaceChildren();
+        
         let entryDef = entryDefinitions.filter((entryDef) => {return entryDef.pk == entryDefPk})[0]
         let fieldDef = entryDef.fields.field_definition
         // for each field in entry def load the gui
@@ -31,12 +38,31 @@
           let gui_element = type_gui_reflections[fieldDef[def]](def)
           // handle the case where the type has no configured gui_element
           if (gui_element != null) {
-            container.appendChild(gui_element);
+            form.appendChild(gui_element);
           }
         }
       }
+
+      // Get the field definitions of current entry definition using the pk(id) from HTML
+      function getIdFromHtml() {
+        return document.getElementById("entryDefs").value;
+      }
+
       // Initial load
-      loadReflections()
+      loadReflections(entryDefinitions[0].pk)
+      // Load the marker from the url params
+      var marker
+
+      window.addEventListener("map:init", function (event) {
+        var map = event.detail.map;
+        map.flyTo(["{{ lat }}", "{{ lon }}"], 8)
+        console.log(map)
+        marker = new L.Marker(["{{ lat }}", "{{ lon }}"]);
+        marker.addTo(map);
+        
+        // Add click event for updating the marker 
+        map.on('click', function(e) { marker.setLatLng(e.latlng); });
+      });
     </script>
   </head>
 </html>
