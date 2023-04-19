@@ -3,27 +3,40 @@
 <html>
     <body>
         <h1>User Entry</h1>
+        <select name="entryDefs" id="entryDefs" onchange="loadReflections()">
+          {% for entry_def in entry_definitions %}
+          <option value="{{ entry_def.id }}">{{ entry_def.name }}</option>
+          {% endfor %}
+        </select>
         <div id="container"></div>
       </body>
   <head>
     {% leaflet_js %}
     {% leaflet_css %}
     <style>
-      .leaflet-container { height: 100%; }
     </style>
     <script src="{% static 'ui_reflections.js' %}"></script>
     <script>
-        let test1 = "abc"
-        let test2 = new Image(123, 123)
-        let test3 = false
-            
-        let gui_element1 = type_gui_reflections[test1.constructor.name]()
-        let gui_element2 = type_gui_reflections[test2.constructor.name]()
-        let gui_element3 = type_gui_reflections[test3.constructor.name]()
-        var container = document.getElementById('container');
-        container.appendChild(gui_element1);
-        container.appendChild(gui_element2);
-        container.appendChild(gui_element3);
+      let entryDefinitions = JSON.parse('{{ entry_definitions_js|escapejs }}')
+      function loadReflections() {
+        // Clear container from possible previous selection
+        let container = document.getElementById('container');
+        container.replaceChildren();
+        // Get the field definitions of current entry definition using the pk(id) from HTML
+        let entryDefPk = document.getElementById("entryDefs").value;
+        let entryDef = entryDefinitions.filter((entryDef) => {return entryDef.pk == entryDefPk})[0]
+        let fieldDef = entryDef.fields.field_definition
+        // for each field in entry def load the gui
+        for (def in fieldDef) {
+          let gui_element = type_gui_reflections[fieldDef[def]](def)
+          // handle the case where the type has no configured gui_element
+          if (gui_element != null) {
+            container.appendChild(gui_element);
+          }
+        }
+      }
+      // Initial load
+      loadReflections()
     </script>
   </head>
 </html>

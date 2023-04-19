@@ -1,3 +1,4 @@
+from django.core import serializers
 from djgeojson.views import GeoJSONLayerView
 from django.http import JsonResponse
 from .models import ProjectDefinition, UserEntry
@@ -38,7 +39,10 @@ class UserEntryView(TemplateView):
     def get_context_data(self, *args, **kwargs):
         context = TemplateView.get_context_data(self, *args, **kwargs)
 
-        context["project_definition"] = ProjectDefinition.objects.get(url=self.project_name)
+        project = ProjectDefinition.objects.get(url=self.project_name)
+        # Add to different context entries for html and python (javascript needs a serialized version)
+        context["entry_definitions"] = project.entry_definitions.all()
+        context["entry_definitions_js"] = serializers.serialize("json", context["entry_definitions"])
         return context
     
     @property
