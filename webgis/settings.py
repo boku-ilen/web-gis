@@ -25,7 +25,7 @@ SECRET_KEY = '_omc6hxq40u11no0uvi&g__lzj2n^4-dk#l#i+7+vgng!-bb^)'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', "141.244.150.43"]
 
 
 # Application definition
@@ -126,5 +126,4 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR
 
 LEAFLET_CONFIG = {
-    'SPATIAL_EXTENT': (5.0, 44.0, 7.5, 46)
 }
