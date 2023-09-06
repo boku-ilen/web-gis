@@ -26,7 +26,7 @@ def create_entry(request: WSGIRequest, project_url):
             definition = EntryDefinition.objects.get(id=rq["definition"])
             new_user_entry = UserEntry(project=project, definition=definition, field_data=rq["field_data"], geom=rq["geom"])
             new_user_entry.save()
-            return JsonResponse({"success": True})
+            raise Http404
         except:
             return JsonResponse({"success": False})
 

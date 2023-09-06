@@ -7,8 +7,9 @@ function createLabel(name) {
     return label
 } 
 
+// How the form to apply a new entry will look like
 const type_gui_reflections = {
-    "Boolean": (name, value) => {
+    "Dropdown": (name, value) => {
         let label = createLabel(name)
 
         let checkbox = document.createElement("select");
@@ -25,7 +26,7 @@ const type_gui_reflections = {
 
         return {"label": label, "input": checkbox};
     },
-    "String": (name, value) => {
+    "Comment": (name, value) => {
         let label = createLabel(name)
 
         let textInput = document.createElement("input");
@@ -34,7 +35,7 @@ const type_gui_reflections = {
 
         return {"label": label, "input": textInput};
     },
-    "Integer": (name, value) => {
+    "Spinbox": (name, value) => {
         let label = createLabel(name)
 
         let numberInput = document.createElement("input");
@@ -43,7 +44,7 @@ const type_gui_reflections = {
 
         return {"label": label, "input": numberInput};
     },
-    "HTMLImageElement": (name, value) => {
+    "Image": (name, value) => {
         let label = createLabel(name)
 
         let imageButton = document.createElement("input");
@@ -53,28 +54,45 @@ const type_gui_reflections = {
 
         return {"label": label, "input": imageButton};
     },
-    "Radio": (name, value) => {
-        let label = createLabel(name)
+    "Radio": (name, params) => {
+        let title = document.createElement("p");
+        title.appendChild(document.createTextNode(name));
+        
+        let fieldset = document.createElement("fieldset");
+        fieldset.setAttribute("id", name);   
+        params.values.forEach(value => {
+            let label = createLabel(value)
+            let radio = document.createElement("input");
+            radio.setAttribute("name", name)
+            radio.type = "radio";
+            fieldset.appendChild(label);
+            fieldset.appendChild(radio);
+        });
 
-        let radio = document.createElement("input");
-        radio.setAttribute("name", name)
-        radio.type = "radio";
-
-        return {"label": label, "input": radio};
+        return {"label": title, "input": fieldset};
     },
-    "Checkbox": (name, value) => {
-        let label = createLabel(name)
+    "Checkbox": (name, params) => {
+        let title = document.createElement("p");
+        title.appendChild(document.createTextNode(name));
+        
+        let fieldset = document.createElement("fieldset");
+        fieldset.setAttribute("id", name);   
+        params.values.forEach(value => {
+            let label = createLabel(value)
+            let checkbox = document.createElement("input");
+            checkbox.setAttribute("name", name)
+            checkbox.type = "checkbox";
+            fieldset.appendChild(label);
+            fieldset.appendChild(checkbox);
+        });
 
-        let checkbox = document.createElement("input");
-        checkbox.setAttribute("name", name)
-        checkbox.type = "checkbox";
-
-        return {"label": label, "input": checkbox};
+        return {"label": title, "input": fieldset};
     }
 } 
 
+// How an applied entry will be displayed
 const type_display_reflections = {
-    "Boolean": (name, value) => {
+    "Dropdown": (name, value) => {
         let container = document.createElement("container");
 
         var value_string = value ? "Ja" : "Nein";
@@ -87,7 +105,7 @@ const type_display_reflections = {
 
         return container;
     },
-    "String": (name, value) => {
+    "Comment": (name, value) => {
         let container = document.createElement("container");
 
         let label = document.createElement("label");
@@ -98,7 +116,7 @@ const type_display_reflections = {
 
         return container;
     },
-    "Integer": (name, value) => {
+    "Spinbox": (name, value) => {
         let container = document.createElement("container");
 
         let label = document.createElement("label");
@@ -109,7 +127,7 @@ const type_display_reflections = {
 
         return container;
     },
-    "HTMLImageElement": (name, value) => {
+    "Image": (name, value) => {
         let container = document.createElement("container");
 
         let label = document.createElement("label");

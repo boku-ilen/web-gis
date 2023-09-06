@@ -25,27 +25,34 @@
     </style>
     <script src="{% static 'ui_reflections.js' %}"></script>
     <script>
+
+      // Get the field definitions of current entry definition using the pk(id) from HTML
+      function getIdFromHtml() {
+        return document.getElementById("entryDefs").value
+      }
+
       function createEntry() {
         var formData = new FormData(document.getElementById("entry-form"));
         
         // TODO: Handle Image data (just an empty object in formdata for whatever reason)
         // TODO: Ideally the image should be stored on the server and the field should just be an url 
-
+        
         var field_data = {};
         formData.forEach((value, key) => field_data[key] = value);
         var object = {
           "project": "{{ project_url }}",
-          "definition": getIdFromHtml(),
+          "definition": document.getElementById("entry-form").getAttribute("definitionid"),
           "field_data": field_data,
           "geom": marker.toGeoJSON()
         };
         var json = JSON.stringify(object);
-        
+
         const request = new XMLHttpRequest();
         request.open("POST", "/{{ project_url }}/create/");
         request.setRequestHeader("X-CSRFTOKEN", "{{ csrf_token }}")
         // TODO: React to a unsuccessful response (e.g. a popup?)
         request.onload = () => location.href = "/{{ project_url }}/"
+        request.onerror = () => alert("Etwas ist schief gelaufen, bitte probiere es später erneut.");
         request.send(json);
       }
 
@@ -54,20 +61,23 @@
         // Clear form from possible previous selection
         let form = document.getElementById('entry-form');
         form.replaceChildren();
-        
+        form.setAttribute("definitionid", entryDefPk) 
+               
+        // Obtain currently selected entry-definiton
         let entryDef = entryDefinitions.filter((entryDef) => {return entryDef.pk == entryDefPk})[0]
+        
+        // Get the field definition
         let fieldDef = entryDef.fields.field_definition
+
         // for each field in entry def load the gui
-        for (def in fieldDef) {
-          let gui_elements = type_gui_reflections[fieldDef[def]](def)
+        for (field_name in fieldDef) {
+          const type = fieldDef[field_name].type
+          const params = fieldDef[field_name].params 
+          const gui_elements = type_gui_reflections[type](field_name, params)
+                    
           form.appendChild(gui_elements["label"])
           form.appendChild(gui_elements["input"])
         }
-      }
-
-      // Get the field definitions of current entry definition using the pk(id) from HTML
-      function getIdFromHtml() {
-        return document.getElementById("entryDefs").value;
       }
 
       // Initial load
