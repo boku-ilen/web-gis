@@ -18,7 +18,32 @@ The basic architecture is a modular connection of:
 - An `EntryDefinition` is model of one or more typed fields which are automatically reflected in the UI (see `/webgis/static/ui_reflection.js`). 
     - The field defintion has to a JSON-like map, with (key->name, value->type). For instance:
 ```json
-{"Okay": "Boolean", "Approval": "Integer", "Comment": "String", "Image": "HTMLImageElement"}
+{
+    "Approval": {
+        "type": "Radio", 
+        "params": {
+            "values": ["mir gefällt dieses Windrad sehr gut", "mir gefällt dieses Windrad", "mir gefällt dieses Windrad nicht", "ich finde dieses Windrad grässlich!"]}}, 
+    "Okay": {
+        "type": "Dropdown", 
+        "params": {"
+            values": [0, 1, 2]
+        }
+    }, 
+    "Zustimmung": {
+        "type": "Spinbox", 
+        "params": {
+            "min_value": 0, "max_value": 10, "step": 1, "value": 5
+        }
+    }, 
+    "Kommentar": {
+        "type": "Comment", 
+        "params": {}
+    }, 
+    "Bild": {
+        "type": "Image", 
+        "params": {}
+    }
+}
 ```
     - Each value->type in the dictionary has to be defined in `/webgis/static/ui_reflection.js`
 - A User entry which will be of the format defined by its entry definition
