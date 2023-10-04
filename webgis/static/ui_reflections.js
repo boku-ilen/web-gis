@@ -158,7 +158,8 @@ const type_display_reflections = {
         let description = document.createTextNode(name + ": ");
 
         const image = new Image();
-        image.style.width = 200;
+        image.style.maxWidth = 200;
+        image.style.maxHeight = 200;
         image.src = value;  // a Base64 encoded String, e.g. "data:image/jpg;base64,BINARY"
 
         label.appendChild(description);
