@@ -34,11 +34,9 @@
       function createEntry() {
         var formData = new FormData(document.getElementById("entry-form"));
         
-        // TODO: Handle Image data (just an empty object in formdata for whatever reason)
-        // TODO: Ideally the image should be stored on the server and the field should just be an url 
-        
         var field_data = {};
         formData.forEach((value, key) => field_data[key] = value);
+
         var object = {
           "project": "{{ project_url }}",
           "definition": document.getElementById("entry-form").getAttribute("definitionid"),
