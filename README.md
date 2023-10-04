@@ -25,8 +25,8 @@ The basic architecture is a modular connection of:
             "values": ["mir gefällt dieses Windrad sehr gut", "mir gefällt dieses Windrad", "mir gefällt dieses Windrad nicht", "ich finde dieses Windrad grässlich!"]}}, 
     "Okay": {
         "type": "Dropdown", 
-        "params": {"
-            values": [0, 1, 2]
+        "params": {
+            "values": [0, 1, 2]
         }
     }, 
     "Zustimmung": {
