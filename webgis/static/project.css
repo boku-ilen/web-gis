@@ -1,1 +1,19 @@
-.leaflet-container { height: 100%; }
+.leaflet-container { height: 100%; width: 100% }
+
+html, body{
+    margin: 0;
+    padding: 0;
+ }
+ 
+ h1 {
+    position: absolute;
+    color: white;
+    padding-left: 2em;
+    padding-top: 0.2em;
+    z-index: 999;
+    text-shadow:
+        0.08em 0 0.1em black,
+        0 0.08em 0.1em black,
+        -0.08em 0 0.1em black,
+        0 -0.08em 0.1em black;
+ }

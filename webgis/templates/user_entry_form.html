@@ -85,9 +85,10 @@
       window.addEventListener("map:init", function (event) {
         var map = event.detail.map;
         // Zoom to and add marker
-        //map.flyTo(["{{ lat }}", "{{ lon }}"], 8)
         marker = new L.Marker(["{{ lat }}", "{{ lon }}"]);
         marker.addTo(map);
+
+        map.flyTo(new L.LatLng("{{ lat }}", "{{ lon }}"), 16, {"animate": false});
         
         // Add click event for updating the marker 
         map.on('click', function(e) { marker.setLatLng(e.latlng); });

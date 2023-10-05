@@ -12,10 +12,16 @@
       window.addEventListener("map:init", function (event) {
         var map = event.detail.map;
 
+        // Start approx. in the center of Austria, later animate towards the user location if found
+        map.flyTo(new L.LatLng(47.597274, 14.750409), 8, {"animate": false});
+
         function onLocationFound(e) {
-          var current_position = L.marker([e.coords.latitude, e.coords.longitude]).addTo(map)
-            .bindPopup("You are here").openPopup();
-          }
+          radius = Math.min(Math.max(e.coords.accuracy, 10.0), 1000.0);
+          L.circle([e.coords.latitude, e.coords.longitude], {radius: radius, weight: 5}).addTo(map);
+          
+          map.flyTo(new L.LatLng(e.coords.latitude, e.coords.longitude), 13, {duration: 1.0});
+        }
+          
 
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(onLocationFound);
@@ -27,7 +33,7 @@
             var popup = L.popup()
             .setLatLng(popLocation)
             .setContent(`
-            <input id="btntest" type="button" value="Setze" 
+            <input id="btntest" type="button" value="Neuer Eintrag" 
                 onclick="window.location.href = '/${url}/user-entry/${popLocation.lat}/${popLocation.lng}'" />
             `)
             .openOn(map);        
