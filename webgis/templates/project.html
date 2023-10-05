@@ -36,7 +36,6 @@
           var entries = JSON.parse('{{ entries|escapejs }}');
 
           for (id in entries) {
-            console.log(entries[id]);
             // Obtain title of entry and the field-definition 
             const title = entries[id].fields.definition[0];
             const field_def = entries[id].fields.definition[1];
