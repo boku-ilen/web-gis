@@ -11,9 +11,7 @@ html, body{
     padding-left: 2em;
     padding-top: 0.2em;
     z-index: 999;
-    text-shadow:
-        0.08em 0 0.1em black,
-        0 0.08em 0.1em black,
-        -0.08em 0 0.1em black,
-        0 -0.08em 0.1em black;
+    font-size: 2em;
+    color: rgb(0, 175, 255);
+    mix-blend-mode: difference;
  }
