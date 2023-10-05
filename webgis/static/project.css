@@ -15,3 +15,32 @@ html, body{
     color: rgb(0, 175, 255);
     mix-blend-mode: difference;
  }
+
+ #entry-button {
+    background-color: white;
+    color: black;
+    border-color: transparent;
+    padding: 1em 1em;
+    margin: 0px 0px;
+    border: 0px 0px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+ }
+
+ .entry-popup .leaflet-popup-content-wrapper{
+    background-color: white;
+    opacity: 0.9;
+    padding: 0px 0px;
+    margin: 0px 0px;
+    border-radius: 0px;
+}
+
+.entry-popup .leaflet-popup-content {
+    margin: 0px 0px;
+}
+
+.entry-popup .leaflet-popup-tip {
+    padding: 0px;
+}

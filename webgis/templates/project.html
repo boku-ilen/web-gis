@@ -30,10 +30,10 @@
         map.on('click', function(e) {        
             var popLocation = e.latlng;
             let url = '{{ project_url }}'
-            var popup = L.popup()
+            var popup = L.popup({className: "entry-popup"})
             .setLatLng(popLocation)
             .setContent(`
-            <input id="btntest" type="button" value="Neuer Eintrag" 
+            <input id="entry-button" type="button" value="Neuer Eintrag" 
                 onclick="window.location.href = '/${url}/user-entry/${popLocation.lat}/${popLocation.lng}'" />
             `)
             .openOn(map);        
