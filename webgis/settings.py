@@ -126,4 +126,13 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR
 
 LEAFLET_CONFIG = {
+    'TILES': [
+        ('Minimalistisch',
+        'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+        {'attribution': '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>', 'maxZoom': 16}),
+        
+        ('Topografisch',
+        'https://a.tile.opentopomap.org/{z}/{x}/{y}.png',
+        {'attribution': 'Kartendaten: &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>-Mitwirkende, SRTM | Kartendarstellung: &copy; <a href="http://opentopomap.org/">OpenTopoMap</a> (CC-BY-SA)', 'maxZoom': 16})
+    ]
 }
