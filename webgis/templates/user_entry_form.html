@@ -93,10 +93,15 @@
       loadReflections(entryDefinitions[0].pk)
       // Load the marker from the url params
       var marker
+      const pinIcon = L.icon({
+        iconUrl: "{% static 'res/map-pin.svg' %}",
+        iconSize:     [35, 35], // size of the icon
+        iconAnchor:   [35 / 2, 35], // point of the icon which will correspond to marker's location
+      });
       window.addEventListener("map:init", function (event) {
         var map = event.detail.map;
         // Zoom to and add marker
-        marker = new L.Marker(["{{ lat }}", "{{ lon }}"]);
+        marker = new L.Marker(["{{ lat }}", "{{ lon }}"], {icon: pinIcon});
         marker.addTo(map);
 
         map.flyTo(new L.LatLng("{{ lat }}", "{{ lon }}"), 16, {"animate": false});
