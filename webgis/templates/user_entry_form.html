@@ -2,27 +2,37 @@
 {% load static %}
 <html>
     <body>
-        <h1>User Entry</h1>
-        <!-- Only show dropdown options if there are actually options to choose from -->
-        {% if entry_definitions|length > 1 %}
-        <select name="entryDefs" id="entryDefs" onchange="loadReflections(getIdFromHtml())">
-          {% for entry_def in entry_definitions %}
-          <option value="{{ entry_def.id }}">{{ entry_def.name }}</option>
-          {% endfor %}
-        </select>
-        {% endif %}
-        <div>
-          <form id="entry-form">
-          </form>
+      <div class="row d-flex justify-content-center">
+        <div class="col-md-6">
+          <h1>Neuer Eintrag</h1>
+          <!-- Only show dropdown options if there are actually options to choose from -->
+          {% if entry_definitions|length > 1 %}
+          <select name="entryDefs" id="entryDefs" onchange="loadReflections(getIdFromHtml())">
+            {% for entry_def in entry_definitions %}
+            <option value="{{ entry_def.id }}">{{ entry_def.name }}</option>
+            {% endfor %}
+          </select>
+          {% endif %}
+          <div>
+            <form id="entry-form">
+            </form>
+          </div>
         </div>
-        {% leaflet_map "entry"  %}
-        <button onclick="createEntry()">Click me</button>
-      </body>
+      </div>
+      {% leaflet_map "entry"  %}
+      <div class="row d-flex justify-content-center">
+        <div class="col-md-6">
+          <button class="btn btn-outline-primary" onclick="createEntry()">Absenden</button>
+        </div>
+      </div>
+    </body>
   <head>
     {% leaflet_js %}
     {% leaflet_css %}
     <link rel="stylesheet" href="{% static 'global.css' %}">
     <link rel="stylesheet" href="{% static 'entry.css' %}">
+    <link rel="stylesheet" href="{% static 'bootstrap-5.3.2-dist/css/bootstrap.min.css' %}">
+    <script src="{% static 'bootstrap-5.3.2-dist/css/bootstrap.min.css' %}"></script>
     <script src="{% static 'ui_reflections.js' %}"></script>
     <script>
 
