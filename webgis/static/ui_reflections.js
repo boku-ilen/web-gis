@@ -1,51 +1,58 @@
-function createLabel(name) {
-    let label = document.createElement("label");
-    label.setAttribute("for", name)
-    let description = document.createTextNode(name);
+function createTextElement(text, type="label") {
+    let label = document.createElement(type);
+    label.setAttribute("for", text)
+    let description = document.createTextNode(text);
     label.appendChild(description);
     
     return label
-} 
+}
 
 // How the form to apply a new entry will look like
 const type_gui_reflections = {
-    "Dropdown": (name, value) => {
-        let label = createLabel(name)
+    "Dropdown": (name, params) => {
+        let label = createTextElement(name, "legend")
 
-        let checkbox = document.createElement("select");
-        checkbox.setAttribute("name", name)
-        checkbox.type = "select";
-        let yesOption = document.createElement("option");
-        yesOption.setAttribute("value", 1)
-        yesOption.innerHTML = "yes"
-        let noOption = document.createElement("option");
-        noOption.setAttribute("value", 0)
-        noOption.innerHTML = "no"
-        checkbox.appendChild(noOption)
-        checkbox.appendChild(yesOption)
+        let dropdown = document.createElement("select");
+        dropdown.setAttribute("name", name)
+        dropdown.type = "select";
 
-        return {"label": label, "input": checkbox};
+        let fieldset = document.createElement("fieldset");
+        fieldset.setAttribute("id", name);  
+        fieldset.setAttribute("class", "form-check");
+        params.values.forEach(value => {
+            let div = document.createElement("div");
+            let option = document.createElement("option");
+            option.setAttribute("name", name)
+            option.innerHTML = value
+            dropdown.appendChild(option);
+        });
+
+        return {"label": label, "input": dropdown};
     },
     "Comment": (name, value) => {
-        let label = createLabel(name)
-
+        let label = createTextElement(name, "legend")
+        
         let textInput = document.createElement("input");
         textInput.setAttribute("name", name)
         textInput.type = "text";
+        let div = document.createElement("div");
+        div.appendChild(textInput);
 
-        return {"label": label, "input": textInput};
+        return {"label": label, "input": div};
     },
     "Spinbox": (name, value) => {
-        let label = createLabel(name)
+        let label = createTextElement(name, "legend")
 
         let numberInput = document.createElement("input");
         numberInput.setAttribute("name", name)
         numberInput.type = "number";
+        let div = document.createElement("div");
+        div.appendChild(numberInput)
 
-        return {"label": label, "input": numberInput};
+        return {"label": label, "input": div};
     },
     "Image": (name, value) => {
-        let label = createLabel(name)
+        let label = createTextElement(name, "legend")
 
         let parent = document.createElement("span");
 
@@ -79,35 +86,45 @@ const type_gui_reflections = {
         return {"label": label, "input": parent};
     },
     "Radio": (name, params) => {
-        let title = document.createElement("p");
-        title.appendChild(document.createTextNode(name));
-        
+        let title = createTextElement(name, "legend")
+
         let fieldset = document.createElement("fieldset");
-        fieldset.setAttribute("id", name);   
+        fieldset.setAttribute("id", name);  
+        fieldset.setAttribute("class", "form-check");
         params.values.forEach(value => {
-            let label = createLabel(value)
+            let div = document.createElement("div");
+            let label = createTextElement(value)
+            label.setAttribute("class", "form-check-label")
             let radio = document.createElement("input");
             radio.setAttribute("name", name)
+            radio.setAttribute("value", value)
+            radio.setAttribute("class", "form-check-input")
             radio.type = "radio";
-            fieldset.appendChild(label);
-            fieldset.appendChild(radio);
+            div.appendChild(label);
+            div.appendChild(radio);
+            fieldset.appendChild(div);
         });
 
         return {"label": title, "input": fieldset};
     },
     "Checkbox": (name, params) => {
-        let title = document.createElement("p");
-        title.appendChild(document.createTextNode(name));
+        let title = createTextElement(name, "legend")
         
         let fieldset = document.createElement("fieldset");
         fieldset.setAttribute("id", name);   
+        fieldset.setAttribute("class", "form-check");
         params.values.forEach(value => {
-            let label = createLabel(value)
+            let div = document.createElement("div");
+            let label = createTextElement(value)
+            label.setAttribute("class", "form-check-label")
             let checkbox = document.createElement("input");
             checkbox.setAttribute("name", name)
+            checkbox.setAttribute("value", value)
+            checkbox.setAttribute("class", "form-check-input")
             checkbox.type = "checkbox";
-            fieldset.appendChild(label);
-            fieldset.appendChild(checkbox);
+            div.appendChild(label);
+            div.appendChild(checkbox);
+            fieldset.appendChild(div);
         });
 
         return {"label": title, "input": fieldset};
@@ -119,10 +136,8 @@ const type_display_reflections = {
     "Dropdown": (name, value) => {
         let container = document.createElement("container");
 
-        var value_string = value ? "Ja" : "Nein";
-
         let label = document.createElement("label");
-        let description = document.createTextNode(name + ": " + value_string);
+        let description = document.createTextNode(name + ": " + value);
 
         label.appendChild(description);
         container.appendChild(label);
