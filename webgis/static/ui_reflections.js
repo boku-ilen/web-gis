@@ -47,12 +47,36 @@ const type_gui_reflections = {
     "Image": (name, value) => {
         let label = createLabel(name)
 
-        let imageButton = document.createElement("input");
-        imageButton.setAttribute("name", name)
-        imageButton.type = "file";
-        imageButton.accept = "image"; 
+        let parent = document.createElement("span");
 
-        return {"label": label, "input": imageButton};
+        let imageButton = document.createElement("input");
+        imageButton.type = "file";
+        imageButton.accept = "image";
+
+        // The visible form is the imageButton created above, but we can't save a binary image
+        // in there. Therefore, we create a hidden input within which we save the binary image.
+        // This hidden input is what is sent to the server.
+        let imageInput = document.createElement("input");
+        imageInput.setAttribute("name", name)
+        imageInput.type = "hidden";
+
+        imageButton.addEventListener('change', function() {
+            // As soon as an image is selected in the imageButton, convert it to Base64 binary
+            // and save the result into the imageInput.
+            if (this.files && this.files[0]) {
+                const file = this.files[0]
+                const reader = new FileReader()
+                reader.onloadend = () => {
+                    imageInput.value = reader.result
+                }
+                reader.readAsDataURL(file)
+            }
+        });
+
+        parent.appendChild(imageButton);
+        parent.appendChild(imageInput);
+
+        return {"label": label, "input": parent};
     },
     "Radio": (name, params) => {
         let title = document.createElement("p");
@@ -134,8 +158,9 @@ const type_display_reflections = {
         let description = document.createTextNode(name + ": ");
 
         const image = new Image();
-        image.style.width = 200;
-        image.src = value;
+        image.style.maxWidth = 200;
+        image.style.maxHeight = 200;
+        image.src = value;  // a Base64 encoded String, e.g. "data:image/jpg;base64,BINARY"
 
         label.appendChild(description);
         label.appendChild(image);

@@ -1,8 +1,10 @@
 {% load leaflet_tags %}
+{% load static %}
 <html>
   <head>
     {% leaflet_js %}
     {% leaflet_css %}
+    <link rel="stylesheet" href="{% static 'global.css' %}">
     <style>
       .leaflet-container { height: 100%; }
     </style>
