@@ -35,7 +35,7 @@
         var formData = new FormData(document.getElementById("entry-form"));
         
         var field_data = {};
-        formData.forEach((value, key) => field_data[key] = value);
+        formData.forEach((_, key) => field_data[key] = formData.getAll(key));
 
         var object = {
           "project": "{{ project_url }}",
