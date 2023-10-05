@@ -178,6 +178,7 @@ const type_display_reflections = {
         image.src = value;  // a Base64 encoded String, e.g. "data:image/jpg;base64,BINARY"
 
         label.appendChild(description);
+        label.appendChild(document.createElement("br"))
         label.appendChild(image);
         container.appendChild(label);
 
