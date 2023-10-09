@@ -22,7 +22,9 @@
               </form>
             </div>
             <hr>
+            <button class="btn btn-outline-secondary" onclick="onCancel()">Abbrechen</button>
             <button class="btn btn-outline-primary" onclick="createEntry()">Absenden</button>
+            
           </div>
         </div>
       </div>
@@ -40,6 +42,10 @@
       // Get the field definitions of current entry definition using the pk(id) from HTML
       function getIdFromHtml() {
         return document.getElementById("entryDefs").value
+      }
+
+      function onCancel() {
+        location.href = "/{{ project_url }}/"
       }
 
       function createEntry() {
