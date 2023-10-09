@@ -60,6 +60,11 @@
           "field_data": field_data,
           "geom": marker.toGeoJSON()
         };
+        const urlParams = new URL(window.location.href).searchParams;
+        const location_entry_id = urlParams.get('location_entry_id');
+        if (location_entry_id != null) {
+          object["location_entry_id"] = location_entry_id
+        }
         var json = JSON.stringify(object);
 
         const request = new XMLHttpRequest();

@@ -3,6 +3,10 @@ from django.db import models
 from django.contrib.postgres.fields import ArrayField
 
 
+#
+# Definitions
+#
+
 class EntryDefinitionManager(models.Manager):
     def get_by_natural_key(self, name, field_definition):
         return self.get(name=name, field_definition=field_definition)
@@ -27,11 +31,21 @@ class ProjectDefinition(models.Model):
     name = models.CharField(max_length=256)
     description = models.TextField()
     entry_definitions = models.ManyToManyField(EntryDefinition)
-    
+
+
+#
+# User entries
+#
+
+class LocationEntry(models.Model):
+
+    project = models.ForeignKey(ProjectDefinition, to_field="url", on_delete=models.CASCADE)
+    geom = PointField()
+
 
 class UserEntry(models.Model):
 
     project = models.ForeignKey(ProjectDefinition, to_field="url", on_delete=models.CASCADE)
+    location_entry = models.ForeignKey(LocationEntry, on_delete=models.CASCADE)
     definition = models.ForeignKey(EntryDefinition, on_delete=models.CASCADE)
     field_data = models.JSONField(db_index=True)
-    geom = PointField()
