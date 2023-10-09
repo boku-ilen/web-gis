@@ -55,6 +55,7 @@ class ProjectView(TemplateView):
             raise Http404
         
         context['project_name'] = project.name
+        context['project_description'] = project.description
 
         entries = UserEntry.objects.filter(project=self.project_url)
 

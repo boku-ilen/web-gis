@@ -47,3 +47,11 @@ html, body{
 .entry-popup .leaflet-popup-tip {
     padding: 0px;
 }
+
+/* center class info-div image horizontally and vertically */
+.info-div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
