@@ -75,7 +75,13 @@
       }
 
       function onCancel() {
-        location.href = "/{{ project_url }}/"
+        if (document.getElementById("survey-div").style.display == "none") {
+          // If we were in the demographics view, switch to the survey view
+          showSurvey();
+        } else {
+          // Otherwise, go back to the project page
+          location.href = "/{{ project_url }}/"
+        }
       }
 
       function createEntry() {
