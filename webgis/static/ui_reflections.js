@@ -59,6 +59,7 @@ const type_gui_reflections = {
         let imageButton = document.createElement("input");
         imageButton.type = "file";
         imageButton.accept = "image";
+        imageButton.capture = "environment";
 
         // The visible form is the imageButton created above, but we can't save a binary image
         // in there. Therefore, we create a hidden input within which we save the binary image.
