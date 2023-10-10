@@ -172,8 +172,8 @@
             container.classList.add("leaflet-control")
             container.classList.add("leaflet-control-custom")
             container.classList.add("info-div")
-            container.style.width = "45px";
-            container.style.height = "45px";
+            container.style.width = "48px";
+            container.style.height = "48px";
 
             // Escape project description unsafe HTML chars
             let safe_proj_desc = escapeHtml(`{{ project_description }}`)
@@ -217,8 +217,8 @@
               // hide info text
               if (!unfolded) return;
               document.getElementById("info-text").style.display = "none";
-              container.style.width = "45px";
-              container.style.height = "45px";
+              container.style.width = "48px";
+              container.style.height = "48px";
               unfolded = false;
             };
 
