@@ -44,8 +44,33 @@ html, body{
     margin: 0px 0px;
 }
 
+.survey-popup .leaflet-popup-content {
+    margin: 13px 0px;
+}
+
+.center-button {
+    display: block !important;
+    margin: 0 auto;
+}
+
+.carousel-inner {
+    width:100%; height: 200px !important;
+}
+
+.carousel-item {
+    height: 200px !important;
+    overflow:scroll;
+}
+
 .entry-popup .leaflet-popup-tip {
     padding: 0px;
+}
+
+.padding-div {
+    padding-left: 50px;
+    padding-right: 50px;
+    padding-bottom: 50px;
+    overflow:scroll;
 }
 
 /* center class info-div image horizontally and vertically */
