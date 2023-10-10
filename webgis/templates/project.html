@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="{% static 'bootstrap-5.3.2-dist/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'global.css' %}">
     <link rel="stylesheet" href="{% static 'project.css' %}">
+    <link rel="stylesheet" href="{% static 'bootstrap-5.3.2-dist/css/bootstrap.min.css' %}">
+    <script src="{% static 'bootstrap-5.3.2-dist/js/bootstrap.min.js' %}"></script>
     <script src="{% static 'ui_reflections.js' %}"></script>
     <script src="{% static 'util.js' %}"></script>
 
@@ -45,53 +47,106 @@
             .openOn(map);        
           });
           
+          // Obtain context  variables (declared in views.py)
           var locations = JSON.parse('{{ locations|escapejs }}');
-          var popups = [];
+          var entries = JSON.parse('{{ entries|escapejs }}');
+
+          // Group the entries for each individual location
+          let entriesForLocations = entries.reduce((entriesForLocations, entry) => {
+            let entriesForLocation = (entriesForLocations[entry.fields.location_entry] || []);
+            entriesForLocation.push(entry);
+            entriesForLocations[entry.fields.location_entry] = entriesForLocation;
+            return entriesForLocations
+          }, {});
+
           for (id in locations) {
-            let latLng;
+            let location_id = locations[id].pk
             L.geoJSON(JSON.parse(locations[id].fields.geom), {
               onEachFeature: function (feature, layer) {
                 latLng = feature.geometry.coordinates;
               }
             }).addTo(map).bindPopup(popup).openPopup();
+            var parentDiv = document.createElement("div");
+            
+            // Add survey entry button
             var button = document.createElement("button");
             button.innerHTML = "Diesen Standort ebenfalls bewerten";
             let create_url = `/${url}/user-entry/${Number(latLng[1])}/${Number(latLng[0])}?location_entry_id=${locations[id].pk}`
             button.setAttribute("onclick", "window.location='" + create_url + "';");
-            
-            var popup = L.popup().setContent(button)
-            popups[locations[id].pk] = popup
+            parentDiv.appendChild(button);
+
+            // Create carousel
+            var carousel = document.createElement("div");
+            let attributes = {"id": "carouselExampleDark", "class": "carousel carousel-dark slide"};
+            Object.entries(attributes).forEach(([key, val]) => carousel.setAttribute(key, val));
+
+            // Inner carousel elements
+            var carouselIndicatorsDiv = document.createElement("div");
+            carouselIndicatorsDiv.setAttribute("class", "carousel-indicators");
+            carousel.appendChild(carouselIndicatorsDiv);
+
+            var carouselInnerDiv = document.createElement("div");
+            carouselInnerDiv.setAttribute("class", "carousel-inner");
+            carouselInnerDiv.innerHTML = `
+            <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="prev">
+              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="next">
+              <span class="carousel-control-next-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Next</span>
+            </button>
+            `.trim();
+            carousel.appendChild(carouselInnerDiv);
+            parentDiv.appendChild(carousel);
+
+            var popup = L.popup().setContent(parentDiv)
             L.geoJSON(JSON.parse(locations[id].fields.geom)).addTo(map).bindPopup(popup).openPopup();
-          }
 
-          var entries = JSON.parse('{{ entries|escapejs }}');
+            let isFirstForLocation = true;
+            let entriesForLocation = entriesForLocations[location_id]
+            for (entry_id in entriesForLocation) {
+              // Obtain title of entry and the field-definition 
+              const title = entriesForLocation[entry_id].fields.definition[0];
+              const field_def = entriesForLocation[entry_id].fields.definition[1];
 
-          for (id in entries) {
-            // Obtain title of entry and the field-definition 
-            const title = entries[id].fields.definition[0];
-            const field_def = entries[id].fields.definition[1];
+              var marker_html = `<h2>${title}</h2>`;
 
-            marker_html = `<h2>${title}</h2>`;
+              // The actual filled out field data
+              const field_data = entriesForLocation[entry_id].fields.field_data;
 
-            // The actual filled out field data
-            const field_data = entries[id].fields.field_data;
-            for (field_name in field_data) {
-              // E.g. dropdown, radio, ...
-              const type = field_def[field_name].type;
-              const value = field_data[field_name];
-              const get_displayed_html = type_display_reflections[type];
-              const html = get_displayed_html(field_name, value);
+              // Create the carousel item (i.e. one entry)
+              var itemDiv = document.createElement("div");
+              let itemDivAttributes = {
+                "class": "carousel-item" + (isFirstForLocation ? " active" : ""), 
+                "data-bs-interval": "10000"};
+              Object.entries(itemDivAttributes).forEach(([key, val]) => itemDiv.setAttribute(key, val));
 
-              marker_html += `
-                <div>
-                  ${html.outerHTML}
-                </div>`;
+              // Create the carousel indicator (i.e. button where carousel currently is)
+              var indicator = document.createElement("button");
+              let indicatorAttributes = {
+                "class": (isFirstForLocation ? " active" : ""), 
+                "type": "button", 
+                "data-bs-target": "#carouselExampleDark", 
+                "data-bs-slide-to": entry_id};
+              Object.entries(indicatorAttributes).forEach(([key, val]) => indicator.setAttribute(key, val));
+              
+              for (field_name in field_data) {
+                // E.g. dropdown, radio, ...
+                const type = field_def[field_name].type;
+                const value = field_data[field_name];
+                const get_displayed_html = type_display_reflections[type];
+                const html = get_displayed_html(field_name, value);
+
+                marker_html += `<div>${html.outerHTML}</div>`;
+              }
+
+              itemDiv.innerHTML = marker_html;
+
+              carouselIndicatorsDiv.appendChild(indicator);
+              carouselInnerDiv.appendChild(itemDiv);
+              isFirstForLocation = false;
             }
-
-            location_id = entries[id].fields.location_entry
-            let current_popup = popups[location_id.toString()];
-            let previous_html = current_popup.getContent() instanceof HTMLElement ? current_popup.getContent().outerHTML : current_popup.getContent() 
-            current_popup.setContent(previous_html + marker_html);
           }
       });
 
@@ -116,7 +171,6 @@
 
             // Escape project description unsafe HTML chars
             let safe_proj_desc = escapeHtml(`{{ project_description }}`)
-            console.log(safe_proj_desc);
 
             // Add an initally hidden div for the info text
             div = document.createElement("div");
