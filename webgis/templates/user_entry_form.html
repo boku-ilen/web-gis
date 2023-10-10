@@ -22,7 +22,9 @@
               </form>
             </div>
             <hr>
+            <button class="btn btn-outline-secondary" onclick="onCancel()">Abbrechen</button>
             <button class="btn btn-outline-primary" onclick="createEntry()">Absenden</button>
+            
           </div>
         </div>
       </div>
@@ -42,6 +44,10 @@
         return document.getElementById("entryDefs").value
       }
 
+      function onCancel() {
+        location.href = "/{{ project_url }}/"
+      }
+
       function createEntry() {
         var formData = new FormData(document.getElementById("entry-form"));
         
@@ -54,6 +60,11 @@
           "field_data": field_data,
           "geom": marker.toGeoJSON()
         };
+        const urlParams = new URL(window.location.href).searchParams;
+        const location_entry_id = urlParams.get('location_entry_id');
+        if (location_entry_id != null) {
+          object["location_entry_id"] = location_entry_id
+        }
         var json = JSON.stringify(object);
 
         const request = new XMLHttpRequest();

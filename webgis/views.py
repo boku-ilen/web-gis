@@ -2,7 +2,7 @@ import json
 from django.core import serializers
 from djgeojson.views import GeoJSONLayerView
 from django.http import JsonResponse
-from .models import EntryDefinition, ProjectDefinition, UserEntry
+from .models import EntryDefinition, LocationEntry, ProjectDefinition, UserEntry
 from django.views.generic import TemplateView
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404
@@ -24,8 +24,19 @@ def create_entry(request: WSGIRequest, project_url):
             rq = json.loads(request.body.decode('utf-8'))
             project = ProjectDefinition.objects.get(url=rq["project"])
             definition = EntryDefinition.objects.get(id=rq["definition"])
-            new_user_entry = UserEntry(project=project, definition=definition, field_data=rq["field_data"], geom=rq["geom"])
+            
+            # Location entry exists and is correct project, so we can use it
+            if "location_entry_id" in rq and LocationEntry.objects.filter(project=project, id=rq["location_entry_id"]).exists():
+                location_entry = LocationEntry.objects.get(id=rq["location_entry_id"])
+            # Ohterwise, we need to create it
+            else:
+                location_entry = LocationEntry(project=project, geom=rq["geom"])
+                location_entry.save()
+
+            new_user_entry = UserEntry(project=project, definition=definition, location_entry=location_entry, field_data=rq["field_data"])
             new_user_entry.save()
+            # return success
+            return JsonResponse({"success": True})
         except:
             raise Http404
 
@@ -55,10 +66,13 @@ class ProjectView(TemplateView):
             raise Http404
         
         context['project_name'] = project.name
+        context['project_description'] = project.description
 
         entries = UserEntry.objects.filter(project=self.project_url)
+        locations = LocationEntry.objects.filter(project=self.project_url)
 
         context["entries"] = serializers.serialize("json", entries.all(), use_natural_foreign_keys=True)
+        context["locations"] = serializers.serialize("json", locations.all(), use_natural_foreign_keys=True)
 
         return context
 

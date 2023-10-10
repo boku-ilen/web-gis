@@ -8,9 +8,10 @@
     <link rel="stylesheet" href="{% static 'project.css' %}">
     <script src="{% static 'ui_reflections.js' %}"></script>
     <script>
-
       window.addEventListener("map:init", function (event) {
         var map = event.detail.map;
+        
+        addInformationControl(map);
 
         // Start approx. in the center of Austria, later animate towards the user location if found
         map.flyTo(new L.LatLng(47.597274, 14.750409), 8, {"animate": false});
@@ -27,9 +28,9 @@
           navigator.geolocation.getCurrentPosition(onLocationFound);
         }
         
+        let url = '{{ project_url }}'
         map.on('click', function(e) {        
             var popLocation = e.latlng;
-            let url = '{{ project_url }}'
             var popup = L.popup({className: "entry-popup"})
             .setLatLng(popLocation)
             .setContent(`
@@ -38,6 +39,25 @@
             `)
             .openOn(map);        
           });
+          
+          var locations = JSON.parse('{{ locations|escapejs }}');
+          var popups = [];
+          for (id in locations) {
+            let latLng;
+            L.geoJSON(JSON.parse(locations[id].fields.geom), {
+              onEachFeature: function (feature, layer) {
+                latLng = feature.geometry.coordinates;
+              }
+            }).addTo(map).bindPopup(popup).openPopup();
+            var button = document.createElement("button");
+            button.innerHTML = "Diesen Standort ebenfalls bewerten";
+            let create_url = `/${url}/user-entry/${Number(latLng[1])}/${Number(latLng[0])}?location_entry_id=${locations[id].pk}`
+            button.setAttribute("onclick", "window.location='" + create_url + "';");
+            
+            var popup = L.popup().setContent(button)
+            popups[locations[id].pk] = popup
+            L.geoJSON(JSON.parse(locations[id].fields.geom)).addTo(map).bindPopup(popup).openPopup();
+          }
 
           var entries = JSON.parse('{{ entries|escapejs }}');
 
@@ -63,10 +83,102 @@
                 </div>`;
             }
 
-            var marker = L.geoJSON(JSON.parse(entries[id].fields.geom)).addTo(map)
-              .bindPopup(marker_html).openPopup();
+            location_id = entries[id].fields.location_entry
+            let current_popup = popups[location_id.toString()];
+            let previous_html = current_popup.getContent() instanceof HTMLElement ? current_popup.getContent().outerHTML : current_popup.getContent() 
+            current_popup.setContent(previous_html + marker_html);
           }
       });
+
+      var unfolded = false;
+      function addInformationControl(map) {
+        var Button =  L.Control.extend({
+          options: {
+            position: 'topright'
+          },
+          onAdd: function (map) {
+            var container = L.DomUtil.create("div", "info");
+            container.type="div";
+            container.title="Informationen";
+            container.value = "i";
+
+            container.classList.add("leaflet-control-layers")
+            container.classList.add("leaflet-control")
+            container.classList.add("leaflet-control-custom")
+            container.classList.add("info-div")
+            container.style.width = "45px";
+            container.style.height = "45px";
+          
+            // Add an initally hidden div for the info text
+            div = document.createElement("div");
+            div.id = "info-text";
+            div.innerHTML = "<p>{{ project_description }}</p>";
+            div.style.display = "none";
+            container.appendChild(div);
+
+            // Add a hyperlink to toggle the info text (mobile applications)
+            a = document.createElement("a");
+            a.id = "info-toggle";
+            a.href = "#";
+            a.title = "Informationen";
+            container.appendChild(a);
+
+            // Add a custom icon to the leaflet container
+            svgImg = document.createElement("img");
+            svgImg.id = "info-icon";
+            svgImg.src = "{% static 'res/info.svg' %}";
+            svgImg.width = "30";
+            svgImg.height = "30";
+            a.appendChild(svgImg);
+
+            unfoldInfo  = function() {
+              if (unfolded) return;
+              document.getElementById("info-text").style.display = "block";
+              container.style.width = "40%";
+              container.style.height = "auto";
+              unfolded = true;
+              document.addEventListener("click", function(e) {
+                if (e.target != container && e.target != a && e.target != svgImg) {
+                  foldInfo();
+                }
+              });
+            };
+
+            foldInfo = function() {
+              // hide info text
+              if (!unfolded) return;
+              document.getElementById("info-text").style.display = "none";
+              container.style.width = "45px";
+              container.style.height = "45px";
+              unfolded = false;
+            };
+
+            // Mouse over event shows project description
+            var unfoldEvents = {
+              "mouseover": container,
+              "click": a 
+            }
+            Object.entries(unfoldEvents).forEach( ([evt, el]) => 
+              el.addEventListener(evt, unfoldInfo, false)
+            );
+            
+            // Mouse out event shows resets
+            var foldEvents = {
+              "mouseout": container,
+            }
+            Object.entries(foldEvents).forEach( ([evt, el]) => 
+              el.addEventListener(evt, foldInfo, false)
+            );
+
+            ["click"].forEach( (evt) => 
+              container.addEventListener(evt, function(e) {e.stopPropagation();}, false)
+            );
+
+            return container;
+          }
+        });
+        map.addControl(new Button());
+      }
     </script>
   </head>
   <body>

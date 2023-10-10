@@ -4,6 +4,10 @@
 
 Make sure GDAL is installed system-wide.
 
+Install the required Python libraries: `pip3 install -r requirements.txt`
+
+Setup the server:
+
 ```sh
 python3 manage.py migrate
 python3 manage.py createsuperuser
