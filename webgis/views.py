@@ -11,6 +11,42 @@ from django.core import serializers
 from django.core.handlers.wsgi import WSGIRequest
 
 
+# Returns an is_valid boolean, an error message, and the related attribute title
+def validate_entry_data(entry_data, definition_data):
+    # Check whether there is superfluous data
+    for attribute_title, values in entry_data.items():
+        if not attribute_title in definition_data:
+            return False, "UNDEFINED_ENTRY", attribute_title
+
+    # Check if all required attributes from the definition are present
+    for attribute_title, attribute_def in definition_data.items():
+        attribute_type = attribute_def["type"]
+
+        if attribute_type == "Checkbox":
+            if attribute_title in entry_data:
+                for value in entry_data[attribute_title]:
+                    if not value in attribute_def["params"]["values"]:
+                        return False, "UNDEFINED_CHECKBOX_VALUE", attribute_title
+        elif attribute_type == "Radio" or attribute_type == "Dropdown":
+            if not attribute_title in entry_data:
+                return False, "MISSING_RADIO_INPUT", attribute_title
+            
+            if not entry_data[attribute_title][0] in attribute_def["params"]["values"]:
+                return False, "UNDEFIND_RADIO_VALUE", attribute_title
+        elif attribute_type == "Spinbox":
+            if not attribute_title in entry_data or not entry_data[attribute_title][0]:
+                return False, "MISSING_SPINBOX_INPUT", attribute_title
+            
+            if float(entry_data[attribute_title][0]) > attribute_def["params"]["max_value"] \
+                    or float(entry_data[attribute_title][0]) < attribute_def["params"]["min_value"]:
+                return False, "INVALID_SPINBOX_VALUE", attribute_title
+        elif attribute_type == "Bild":
+            # TODO: Add "Required" property and validate?
+            pass
+ 
+    return True, "", ""
+
+
 def create_entry(request: WSGIRequest, project_url):
     # get project via unique project_url
     # get EntryDefinition and field values with calls like request.POST['<field_name>']
@@ -20,7 +56,11 @@ def create_entry(request: WSGIRequest, project_url):
             project = ProjectDefinition.objects.get(url=rq["project"])
             definition = EntryDefinition.objects.get(id=rq["definition"])
 
-            # TODO: Validate rq["survey_data"] against definition
+            # Validate
+            is_valid, error, attribute = validate_entry_data(rq["survey_data"], definition.field_definition)
+            if not is_valid:
+                print(f"Request with data {rq} was invalid with error {error} in attribute {attribute}")
+                return JsonResponse({"success": False, "error": error, "attribute": attribute})
             
             # Location entry exists and is correct project, so we can use it
             if "location_entry_id" in rq and LocationEntry.objects.filter(project=project, id=rq["location_entry_id"]).exists():
@@ -39,7 +79,12 @@ def create_entry(request: WSGIRequest, project_url):
             new_survey_entry.save()
             
             if project.demographic_entry_definition:
-                # TODO: Validate rq["demographic_data"] against project.demographic_entry_definition
+                
+                # Validate
+                is_valid, error, attribute = validate_entry_data(rq["demographic_data"], project.demographic_entry_definition.field_definition)
+                if not is_valid:
+                    print(f"Request with data {rq} was invalid with error {error} in attribute {attribute}")
+                    return JsonResponse({"success": False, "error": error, "attribute": attribute})
 
                 new_demographic_entry = DemographicEntry(
                     survey_entry=new_survey_entry,
@@ -51,8 +96,7 @@ def create_entry(request: WSGIRequest, project_url):
             return JsonResponse({"success": True})
         except Exception:
             traceback.print_exc()
-            
-            raise Http404
+            return JsonResponse({"success": False, "error": "SERVER_ERROR"})
 
 
 

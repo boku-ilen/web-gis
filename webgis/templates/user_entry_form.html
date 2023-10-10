@@ -60,7 +60,7 @@
 
       function createEntry() {
         var surveyFormData = new FormData(document.getElementById("survey-form"));
-        
+
         var surveyFieldData = {};
         surveyFormData.forEach((_, key) => surveyFieldData[key] = surveyFormData.getAll(key));
 
@@ -85,8 +85,16 @@
         const request = new XMLHttpRequest();
         request.open("POST", "/{{ project_url }}/create/");
         request.setRequestHeader("X-CSRFTOKEN", "{{ csrf_token }}")
-        // TODO: React to a unsuccessful response (e.g. a popup?)
-        request.onload = () => location.href = "/{{ project_url }}/"
+        
+        request.onload = () => {
+          response = JSON.parse(request.response)
+
+          if (response["success"] == true) {
+            location.href = "/{{ project_url }}/"
+          } else {
+            alert("Etwas ist schief gelaufen: Error " + response["error"] + " im Feld " + response["attribute"])
+          }
+        }
         request.onerror = () => alert("Etwas ist schief gelaufen, bitte probiere es später erneut.");
         request.send(json);
       }
