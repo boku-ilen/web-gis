@@ -59,13 +59,20 @@
             return entriesForLocations
           }, {});
 
+          const surveyIcon = L.icon({
+            iconUrl: "{% static 'res/surveys-icon.svg' %}",
+            iconSize:     [30, 30], // size of the icon
+            iconAnchor:   [30 / 2, 30 / 2], // point of the icon which will correspond to marker's location
+          });
+
           for (id in locations) {
             let location_id = locations[id].pk
             // Obtain lat lon from location
             L.geoJSON(JSON.parse(locations[id].fields.geom), { 
               onEachFeature: function (feature, layer) {
-                latLng = feature.geometry.coordinates;}})
-            
+                latLng = feature.geometry.coordinates;
+              }
+            });
             var parentDiv = document.createElement("div");
             
             // Add survey entry button
@@ -104,7 +111,14 @@
             parentDiv.appendChild(surveyEntryButton);
 
             var popup = L.popup().setContent(parentDiv);
-            L.geoJSON(JSON.parse(locations[id].fields.geom)).addTo(map).bindPopup(popup, {className: "survey-popup", minHeight: 800, minWidth: 330}).openPopup();
+            L.geoJSON(
+              JSON.parse(locations[id].fields.geom), {
+                pointToLayer: function (feature, latlng) {
+                    return L.marker(latlng, {icon: surveyIcon})}
+              })
+              .addTo(map)
+              .bindPopup(popup, {className: "survey-popup", minHeight: 800, minWidth: 330})
+              .openPopup();
 
             let isFirstForLocation = true;
             let entriesForLocation = entriesForLocations[location_id]
@@ -203,7 +217,7 @@
             unfoldInfo  = function() {
               if (unfolded) return;
               document.getElementById("info-text").style.display = "block";
-              container.style.width = "40%";
+              container.style.width = "60%";
               container.style.height = "auto";
               unfolded = true;
               document.addEventListener("click", function(e) {
