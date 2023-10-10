@@ -59,12 +59,20 @@
             return entriesForLocations
           }, {});
 
+          const surveyIcon = L.icon({
+            iconUrl: "{% static 'res/surveys-icon.svg' %}",
+            iconSize:     [30, 30], // size of the icon
+            iconAnchor:   [30 / 2, 30 / 2], // point of the icon which will correspond to marker's location
+          });
+
           for (id in locations) {
             let location_id = locations[id].pk
             L.geoJSON(JSON.parse(locations[id].fields.geom), {
               onEachFeature: function (feature, layer) {
                 latLng = feature.geometry.coordinates;
-              }
+              },
+              pointToLayer: function (feature, latlng) {
+                    return L.marker(latlng, {icon: surveyIcon})}
             }).addTo(map).bindPopup(popup).openPopup();
             var parentDiv = document.createElement("div");
             
@@ -101,7 +109,6 @@
             parentDiv.appendChild(carousel);
 
             var popup = L.popup().setContent(parentDiv)
-            L.geoJSON(JSON.parse(locations[id].fields.geom)).addTo(map).bindPopup(popup).openPopup();
 
             let isFirstForLocation = true;
             let entriesForLocation = entriesForLocations[location_id]
