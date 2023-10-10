@@ -6,7 +6,7 @@
         <div class="col-sm-12 col-md-7">
           {% leaflet_map "entry"  %}
         </div>
-        <div class="col-sm-12 col-md-5">
+        <div class="survey-container col-sm-12 col-md-5">
           <div class="mx-3 mx-md-0 pb-3 pb-md-0">
             <!-- inline return button -->
             <div>
@@ -138,9 +138,18 @@
         for (field_name in fieldDef) {
           const type = fieldDef[field_name].type
           const params = fieldDef[field_name].params 
+          const description = fieldDef[field_name].description
           const gui_elements = type_gui_reflections[type](field_name, params)
                     
-          form.appendChild(gui_elements["label"])
+          form.appendChild(createTextElement(field_name, "legend"))
+
+          if (description) {
+            let description_element = document.createElement("div")
+            description_element.innerHTML = description
+            description_element.className = "form-description"
+            form.appendChild(description_element)
+          }
+          
           form.appendChild(gui_elements["input"])
         }
       }
