@@ -2,6 +2,27 @@
     height: 100%;
 }
 
+.form-description {
+    padding-bottom: 0.5em;
+    color: #777;
+    font-style: italic;
+}
+
+legend {
+    padding-top: 0.8em;
+    margin-bottom: 0em;
+}
+
+.survey-container {
+    padding-top: 1em;
+    padding-bottom: 2em;
+}
+
+.h-100 {
+    /* Fix for small horizontal scrolling */
+    margin-right: 0 !important;
+}
+
 #map{
     height: 100%;
 }
