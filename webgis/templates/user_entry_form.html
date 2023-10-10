@@ -8,7 +8,17 @@
         </div>
         <div class="col-sm-12 col-md-5">
           <div class="mx-3 mx-md-0 pb-3 pb-md-0">
-            <h1>Neuer Eintrag <button class="btn btn-outline-secondary" onclick="onCancel()">Abbrechen</button></h1>
+            <!-- inline return button -->
+            <div>
+              <h1>
+              <span>
+                <button style="margin-bottom: 5px; width: 40px; height: 40px;" class="btn btn-outline-secondary btn-rm-outline" onclick="onCancel()">
+                  <img width=15px height=15px src='{% static "/res/chevron-left.svg" %}'/>
+                </button>
+              </span>
+              Neuer Eintrag
+              </h1>
+            </div>
             <!-- Only show dropdown options if there are actually options to choose from -->
             {% if survey_entry_definitions|length > 1 %}
             <select name="entryDefs" id="entryDefs" onchange="loadReflections(getIdFromHtml())">
@@ -36,9 +46,19 @@
               <button class="btn btn-outline-primary" onclick="createEntry()">Absenden</button>
             </div>
           </div>
+          
+          <!-- Only show dropdown options if there are actually options to choose from -->
+          {% if entry_definitions|length > 1 %}
+          <select name="entryDefs" id="entryDefs" onchange="loadReflections(getIdFromHtml())">
+            {% for entry_def in entry_definitions %}
+            <option value="{{ entry_def.id }}">{{ entry_def.name }}</option>
+            {% endfor %}
+          </select>
+          {% endif %}
         </div>
       </div>
-    </body>
+    </div>
+  </body>
   <head>
     {% leaflet_js %}
     {% leaflet_css %}

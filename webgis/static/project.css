@@ -55,3 +55,7 @@ html, body{
     align-items: center;
     height: 100%;
 }
+
+#info-text {
+    padding: 13px;
+}
