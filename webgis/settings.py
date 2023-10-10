@@ -127,12 +127,21 @@ MEDIA_ROOT = BASE_DIR
 
 LEAFLET_CONFIG = {
     'TILES': [
-        ('Minimalistisch',
+        ('Standard (Basemap)',
+        'https://mapsneu.wien.gv.at/basemap/bmapgrau/normal/google3857/{z}/{y}/{x}.png',
+        {'attribution': 'Kartendaten: &copy; <a href="https://basemap.at/">basemap.at</a>'}),
+
+        ('Minimalistisch (OpenStreetMap)',
         'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
-        {'attribution': '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>', 'maxZoom': 16}),
+        {'attribution': 'Kartendaten: &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>', 'maxZoom': 16}),
         
-        ('Topografisch',
+        ('Topografisch (OpenTopoMap)',
         'https://a.tile.opentopomap.org/{z}/{x}/{y}.png',
-        {'attribution': 'Kartendaten: &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>-Mitwirkende, SRTM | Kartendarstellung: &copy; <a href="http://opentopomap.org/">OpenTopoMap</a> (CC-BY-SA)', 'maxZoom': 16})
+        {'attribution': 'Kartendaten: &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>-Mitwirkende, SRTM | Kartendarstellung: &copy; <a href="http://opentopomap.org/">OpenTopoMap</a> (CC-BY-SA)', 'maxZoom': 16}),
+
+        ('Satellit (Basemap)',
+        'https://mapsneu.wien.gv.at/basemap/bmaporthofoto30cm/normal/google3857/{z}/{y}/{x}.jpeg',
+        {'attribution': 'Kartendaten: &copy; <a href="https://basemap.at/">basemap.at</a>'})
+    
     ]
 }
