@@ -8,7 +8,7 @@
         </div>
         <div class="col-sm-12 col-md-5">
           <div class="mx-3 mx-md-0 pb-3 pb-md-0">
-            <h1>Neuer Eintrag</h1>
+            <h1>Neuer Eintrag <button class="btn btn-outline-secondary" onclick="onCancel()">Abbrechen</button></h1>
             <!-- Only show dropdown options if there are actually options to choose from -->
             {% if survey_entry_definitions|length > 1 %}
             <select name="entryDefs" id="entryDefs" onchange="loadReflections(getIdFromHtml())">
@@ -17,14 +17,24 @@
               {% endfor %}
             </select>
             {% endif %}
-            <div>
-              <form id="entry-form">
+            <div id="survey-div">
+              <form id="survey-form">
               </form>
+
+              <hr>
+              
+              <button id="survey-button" class="btn btn-outline-primary">Absenden</button>
             </div>
-            <hr>
-            <button class="btn btn-outline-secondary" onclick="onCancel()">Abbrechen</button>
-            <button class="btn btn-outline-primary" onclick="createEntry()">Absenden</button>
-            
+
+            <div id="demographic-div">
+              <form id="demographic-form">
+              </form>
+
+              <hr>
+              
+              <button class="btn btn-outline-secondary" onclick="showSurvey()">Zurück</button>
+              <button class="btn btn-outline-primary" onclick="createEntry()">Absenden</button>
+            </div>
           </div>
         </div>
       </div>
@@ -49,15 +59,20 @@
       }
 
       function createEntry() {
-        var formData = new FormData(document.getElementById("entry-form"));
+        var surveyFormData = new FormData(document.getElementById("survey-form"));
         
-        var field_data = {};
-        formData.forEach((_, key) => field_data[key] = formData.getAll(key));
+        var surveyFieldData = {};
+        surveyFormData.forEach((_, key) => surveyFieldData[key] = surveyFormData.getAll(key));
+
+        var demographicFormData = new FormData(document.getElementById("demographic-form"));
+        var demographicFieldData = {};
+        demographicFormData.forEach((_, key) => demographicFieldData[key] = demographicFormData.getAll(key));
 
         var object = {
           "project": "{{ project_url }}",
-          "definition": document.getElementById("entry-form").getAttribute("definitionid"),
-          "field_data": field_data,
+          "definition": document.getElementById("survey-form").getAttribute("definitionid"),
+          "survey_data": surveyFieldData,
+          "demographic_data": demographicFieldData,
           "geom": marker.toGeoJSON()
         };
         const urlParams = new URL(window.location.href).searchParams;
@@ -77,15 +92,11 @@
       }
 
       let entryDefinitions = JSON.parse('{{ survey_entry_definitions_js|escapejs }}')
-      function loadReflections(entryDefPk) {
-        // Clear form from possible previous selection
-        let form = document.getElementById('entry-form');
+      let demographicEntryDefinition = JSON.parse('{{ demographic_entry_definition_js|escapejs }}')
+
+      function loadEntryDefIntoForm(entryDef, form) {
         form.replaceChildren();
-        form.setAttribute("definitionid", entryDefPk) 
-               
-        // Obtain currently selected entry-definiton
-        let entryDef = entryDefinitions.filter((entryDef) => {return entryDef.pk == entryDefPk})[0]
-        
+
         // Get the field definition
         let fieldDef = entryDef.fields.field_definition
 
@@ -100,8 +111,49 @@
         }
       }
 
+      function loadReflections(entryDefPk) {
+        // Clear form from possible previous selection
+        let form = document.getElementById('survey-form');
+        form.setAttribute("definitionid", entryDefPk) 
+               
+        // Obtain currently selected entry-definiton
+        let entryDef = entryDefinitions.filter((entryDef) => {return entryDef.pk == entryDefPk})[0]
+        
+        loadEntryDefIntoForm(entryDef, form)
+      }
+
       // Initial load
       loadReflections(entryDefinitions[0].pk)
+
+      // Survey / Demographics handling
+      function showSurvey() {
+        document.getElementById("survey-div").style.display = "block";
+        document.getElementById("demographic-div").style.display = "none";
+      }
+
+      if (Object.keys(demographicEntryDefinition).length > 0) {
+        // We have a demographic field here -> rebuild the UI accordingly
+        let survey_button = document.getElementById("survey-button")
+        survey_button.innerHTML = "Weiter"
+        survey_button.onclick = () => {
+          document.getElementById("survey-div").style.display = "none";
+          document.getElementById("demographic-div").style.display = "block";
+        }
+
+        let form = document.getElementById('demographic-form');
+        
+        let entryDef = demographicEntryDefinition[0]
+
+        loadEntryDefIntoForm(entryDef, form)
+      } else {
+        // No demographic field here, only display the survey form
+        let survey_button = document.getElementById("survey-button")
+        survey_button.innerHTML = "Absenden"
+        survey_button.onclick = createEntry
+      }
+
+      showSurvey();
+
       // Load the marker from the url params
       var marker
       const pinIcon = L.icon({
