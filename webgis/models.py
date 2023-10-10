@@ -30,7 +30,8 @@ class ProjectDefinition(models.Model):
     url = models.CharField(max_length=16, unique=True)
     name = models.CharField(max_length=256)
     description = models.TextField()
-    entry_definitions = models.ManyToManyField(EntryDefinition)
+    survey_entry_definitions = models.ManyToManyField(EntryDefinition, related_name="project_surveys")
+    demographic_entry_definition = models.ForeignKey(EntryDefinition, on_delete=models.CASCADE, null=True, blank=True, related_name="project_demographics")
 
 
 #
@@ -43,9 +44,15 @@ class LocationEntry(models.Model):
     geom = PointField()
 
 
-class UserEntry(models.Model):
+class SurveyEntry(models.Model):
 
     project = models.ForeignKey(ProjectDefinition, to_field="url", on_delete=models.CASCADE)
     location_entry = models.ForeignKey(LocationEntry, on_delete=models.CASCADE)
+    definition = models.ForeignKey(EntryDefinition, on_delete=models.CASCADE)
+    field_data = models.JSONField(db_index=True)
+
+class DemographicEntry(models.Model):
+
+    survey_entry = models.OneToOneField(SurveyEntry, on_delete=models.CASCADE, primary_key=True)
     definition = models.ForeignKey(EntryDefinition, on_delete=models.CASCADE)
     field_data = models.JSONField(db_index=True)

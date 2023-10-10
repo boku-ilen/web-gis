@@ -10,8 +10,6 @@ function createTextElement(text, type="label") {
 // How the form to apply a new entry will look like
 const type_gui_reflections = {
     "Dropdown": (name, params) => {
-        let label = createTextElement(name, "legend")
-
         let dropdown = document.createElement("select");
         dropdown.setAttribute("name", name)
         dropdown.type = "select";
@@ -27,38 +25,33 @@ const type_gui_reflections = {
             dropdown.appendChild(option);
         });
 
-        return {"label": label, "input": dropdown};
+        return {"input": dropdown};
     },
     "Comment": (name, value) => {
-        let label = createTextElement(name, "legend")
-        
         let textInput = document.createElement("input");
         textInput.setAttribute("name", name)
         textInput.type = "text";
         let div = document.createElement("div");
         div.appendChild(textInput);
 
-        return {"label": label, "input": div};
+        return {"input": div};
     },
     "Spinbox": (name, value) => {
-        let label = createTextElement(name, "legend")
-
         let numberInput = document.createElement("input");
         numberInput.setAttribute("name", name)
         numberInput.type = "number";
         let div = document.createElement("div");
         div.appendChild(numberInput)
 
-        return {"label": label, "input": div};
+        return {"input": div};
     },
     "Image": (name, value) => {
-        let label = createTextElement(name, "legend")
-
         let parent = document.createElement("span");
 
         let imageButton = document.createElement("input");
         imageButton.type = "file";
         imageButton.accept = "image";
+        imageButton.capture = "environment";
 
         // The visible form is the imageButton created above, but we can't save a binary image
         // in there. Therefore, we create a hidden input within which we save the binary image.
@@ -83,11 +76,9 @@ const type_gui_reflections = {
         parent.appendChild(imageButton);
         parent.appendChild(imageInput);
 
-        return {"label": label, "input": parent};
+        return {"input": parent};
     },
     "Radio": (name, params) => {
-        let title = createTextElement(name, "legend")
-
         let fieldset = document.createElement("fieldset");
         fieldset.setAttribute("id", name);  
         fieldset.setAttribute("class", "form-check");
@@ -105,11 +96,9 @@ const type_gui_reflections = {
             fieldset.appendChild(div);
         });
 
-        return {"label": title, "input": fieldset};
+        return {"input": fieldset};
     },
     "Checkbox": (name, params) => {
-        let title = createTextElement(name, "legend")
-        
         let fieldset = document.createElement("fieldset");
         fieldset.setAttribute("id", name);   
         fieldset.setAttribute("class", "form-check");
@@ -127,7 +116,7 @@ const type_gui_reflections = {
             fieldset.appendChild(div);
         });
 
-        return {"label": title, "input": fieldset};
+        return {"input": fieldset};
     }
 } 
 

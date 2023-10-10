@@ -1,23 +1,50 @@
 {% load leaflet_tags %}
 {% load static %}
 <html>
-  <body>
-    <div class="row h-100 d-flex justify-content-center">
-      <div class="col-sm-12 col-md-7">
-        {% leaflet_map "entry"  %}
-      </div>
-      <div class="col-sm-12 col-md-5">
-        <div class="mx-3 mx-md-0 pb-3 pb-md-0">
-          <!-- inline return button -->
-          <div>
-            <h1>
-            <span>
-              <button style="margin-bottom: 5px; width: 40px; height: 40px;" class="btn btn-outline-secondary btn-rm-outline" onclick="onCancel()">
-                <img width=15px height=15px src='{% static "/res/chevron-left.svg" %}'/>
-              </button>
-            </span>
-            Neuer Eintrag
-            </h1>
+    <body>
+      <div class="row h-100 d-flex justify-content-center">
+        <div class="map-container col-md-12 col-lg-7">
+          {% leaflet_map "entry"  %}
+        </div>
+        <div class="survey-container col-md-12 col-lg-5">
+          <div class="mx-3 mx-md-0 pb-3 pb-md-0">
+            <!-- inline return button -->
+            <div>
+              <h1>
+              <span>
+                <button style="margin-bottom: 5px; width: 40px; height: 40px;" class="btn btn-outline-secondary btn-rm-outline" onclick="onCancel()">
+                  <img width=15px height=15px src='{% static "/res/chevron-left.svg" %}'/>
+                </button>
+              </span>
+              Neuer Eintrag
+              </h1>
+            </div>
+            <!-- Only show dropdown options if there are actually options to choose from -->
+            {% if survey_entry_definitions|length > 1 %}
+            <select name="entryDefs" id="entryDefs" onchange="loadReflections(getIdFromHtml())">
+              {% for entry_def in survey_entry_definitions %}
+              <option value="{{ entry_def.id }}">{{ entry_def.name }}</option>
+              {% endfor %}
+            </select>
+            {% endif %}
+            <div id="survey-div">
+              <form id="survey-form">
+              </form>
+
+              <hr>
+              
+              <button id="survey-button" class="btn btn-outline-primary">Absenden</button>
+            </div>
+
+            <div id="demographic-div">
+              <form id="demographic-form">
+              </form>
+
+              <hr>
+              
+              <button class="btn btn-outline-secondary" onclick="showSurvey()">Zurück</button>
+              <button class="btn btn-outline-primary" onclick="createEntry()">Absenden</button>
+            </div>
           </div>
           
           <!-- Only show dropdown options if there are actually options to choose from -->
@@ -28,12 +55,6 @@
             {% endfor %}
           </select>
           {% endif %}
-          <div>
-            <form id="entry-form">
-            </form>
-          </div>
-          <hr>
-          <button class="btn btn-outline-primary" onclick="createEntry()">Absenden</button>
         </div>
       </div>
     </div>
@@ -41,11 +62,13 @@
   <head>
     {% leaflet_js %}
     {% leaflet_css %}
+    <link rel="stylesheet" href="{% static 'bootstrap-5.3.2-dist/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'global.css' %}">
     <link rel="stylesheet" href="{% static 'entry.css' %}">
-    <link rel="stylesheet" href="{% static 'bootstrap-5.3.2-dist/css/bootstrap.min.css' %}">
-    <script src="{% static 'bootstrap-5.3.2-dist/css/bootstrap.min.css' %}"></script>
     <script src="{% static 'ui_reflections.js' %}"></script>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <script>
 
       // Get the field definitions of current entry definition using the pk(id) from HTML
@@ -54,19 +77,30 @@
       }
 
       function onCancel() {
-        location.href = "/{{ project_url }}/"
+        if (document.getElementById("survey-div").style.display == "none") {
+          // If we were in the demographics view, switch to the survey view
+          showSurvey();
+        } else {
+          // Otherwise, go back to the project page
+          location.href = "/{{ project_url }}/"
+        }
       }
 
       function createEntry() {
-        var formData = new FormData(document.getElementById("entry-form"));
-        
-        var field_data = {};
-        formData.forEach((_, key) => field_data[key] = formData.getAll(key));
+        var surveyFormData = new FormData(document.getElementById("survey-form"));
+
+        var surveyFieldData = {};
+        surveyFormData.forEach((_, key) => surveyFieldData[key] = surveyFormData.getAll(key));
+
+        var demographicFormData = new FormData(document.getElementById("demographic-form"));
+        var demographicFieldData = {};
+        demographicFormData.forEach((_, key) => demographicFieldData[key] = demographicFormData.getAll(key));
 
         var object = {
           "project": "{{ project_url }}",
-          "definition": document.getElementById("entry-form").getAttribute("definitionid"),
-          "field_data": field_data,
+          "definition": document.getElementById("survey-form").getAttribute("definitionid"),
+          "survey_data": surveyFieldData,
+          "demographic_data": demographicFieldData,
           "geom": marker.toGeoJSON()
         };
         const urlParams = new URL(window.location.href).searchParams;
@@ -79,22 +113,26 @@
         const request = new XMLHttpRequest();
         request.open("POST", "/{{ project_url }}/create/");
         request.setRequestHeader("X-CSRFTOKEN", "{{ csrf_token }}")
-        // TODO: React to a unsuccessful response (e.g. a popup?)
-        request.onload = () => location.href = "/{{ project_url }}/"
+        
+        request.onload = () => {
+          response = JSON.parse(request.response)
+
+          if (response["success"] == true) {
+            location.href = "/{{ project_url }}/"
+          } else {
+            alert("Etwas ist schief gelaufen: Error " + response["error"] + " im Feld " + response["attribute"])
+          }
+        }
         request.onerror = () => alert("Etwas ist schief gelaufen, bitte probiere es später erneut.");
         request.send(json);
       }
 
-      let entryDefinitions = JSON.parse('{{ entry_definitions_js|escapejs }}')
-      function loadReflections(entryDefPk) {
-        // Clear form from possible previous selection
-        let form = document.getElementById('entry-form');
+      let entryDefinitions = JSON.parse('{{ survey_entry_definitions_js|escapejs }}')
+      let demographicEntryDefinition = JSON.parse('{{ demographic_entry_definition_js|escapejs }}')
+
+      function loadEntryDefIntoForm(entryDef, form) {
         form.replaceChildren();
-        form.setAttribute("definitionid", entryDefPk) 
-               
-        // Obtain currently selected entry-definiton
-        let entryDef = entryDefinitions.filter((entryDef) => {return entryDef.pk == entryDefPk})[0]
-        
+
         // Get the field definition
         let fieldDef = entryDef.fields.field_definition
 
@@ -102,15 +140,65 @@
         for (field_name in fieldDef) {
           const type = fieldDef[field_name].type
           const params = fieldDef[field_name].params 
+          const description = fieldDef[field_name].description
           const gui_elements = type_gui_reflections[type](field_name, params)
                     
-          form.appendChild(gui_elements["label"])
+          form.appendChild(createTextElement(field_name, "legend"))
+
+          if (description) {
+            let description_element = document.createElement("div")
+            description_element.innerHTML = description
+            description_element.className = "form-description"
+            form.appendChild(description_element)
+          }
+          
           form.appendChild(gui_elements["input"])
         }
       }
 
+      function loadReflections(entryDefPk) {
+        // Clear form from possible previous selection
+        let form = document.getElementById('survey-form');
+        form.setAttribute("definitionid", entryDefPk) 
+               
+        // Obtain currently selected entry-definiton
+        let entryDef = entryDefinitions.filter((entryDef) => {return entryDef.pk == entryDefPk})[0]
+        
+        loadEntryDefIntoForm(entryDef, form)
+      }
+
       // Initial load
       loadReflections(entryDefinitions[0].pk)
+
+      // Survey / Demographics handling
+      function showSurvey() {
+        document.getElementById("survey-div").style.display = "block";
+        document.getElementById("demographic-div").style.display = "none";
+      }
+
+      if (Object.keys(demographicEntryDefinition).length > 0) {
+        // We have a demographic field here -> rebuild the UI accordingly
+        let survey_button = document.getElementById("survey-button")
+        survey_button.innerHTML = "Weiter"
+        survey_button.onclick = () => {
+          document.getElementById("survey-div").style.display = "none";
+          document.getElementById("demographic-div").style.display = "block";
+        }
+
+        let form = document.getElementById('demographic-form');
+        
+        let entryDef = demographicEntryDefinition[0]
+
+        loadEntryDefIntoForm(entryDef, form)
+      } else {
+        // No demographic field here, only display the survey form
+        let survey_button = document.getElementById("survey-button")
+        survey_button.innerHTML = "Absenden"
+        survey_button.onclick = createEntry
+      }
+
+      showSurvey();
+
       // Load the marker from the url params
       var marker
       const pinIcon = L.icon({
