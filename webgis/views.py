@@ -91,8 +91,8 @@ class UserEntryView(TemplateView):
 
         project = ProjectDefinition.objects.get(url=self.project_url)
         # Add to different context entries for html and python (javascript needs a serialized version)
-        context["entry_definitions"] = project.entry_definitions.all()
-        context["entry_definitions_js"] = serializers.serialize("json", context["entry_definitions"])
+        context["survey_entry_definitions"] = project.survey_entry_definitions.all()
+        context["survey_entry_definitions_js"] = serializers.serialize("json", context["survey_entry_definitions"])
         return context
     
     @property

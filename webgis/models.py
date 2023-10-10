@@ -30,7 +30,8 @@ class ProjectDefinition(models.Model):
     url = models.CharField(max_length=16, unique=True)
     name = models.CharField(max_length=256)
     description = models.TextField()
-    entry_definitions = models.ManyToManyField(EntryDefinition)
+    survey_entry_definitions = models.ManyToManyField(EntryDefinition, related_name="project_surveys")
+    demographic_entry_definitions = models.ForeignKey(EntryDefinition, on_delete=models.CASCADE, null=True, blank=True, related_name="project_demographics")
 
 
 #

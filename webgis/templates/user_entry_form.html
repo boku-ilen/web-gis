@@ -10,9 +10,9 @@
           <div class="mx-3 mx-md-0 pb-3 pb-md-0">
             <h1>Neuer Eintrag</h1>
             <!-- Only show dropdown options if there are actually options to choose from -->
-            {% if entry_definitions|length > 1 %}
+            {% if survey_entry_definitions|length > 1 %}
             <select name="entryDefs" id="entryDefs" onchange="loadReflections(getIdFromHtml())">
-              {% for entry_def in entry_definitions %}
+              {% for entry_def in survey_entry_definitions %}
               <option value="{{ entry_def.id }}">{{ entry_def.name }}</option>
               {% endfor %}
             </select>
@@ -76,7 +76,7 @@
         request.send(json);
       }
 
-      let entryDefinitions = JSON.parse('{{ entry_definitions_js|escapejs }}')
+      let entryDefinitions = JSON.parse('{{ survey_entry_definitions_js|escapejs }}')
       function loadReflections(entryDefPk) {
         // Clear form from possible previous selection
         let form = document.getElementById('entry-form');

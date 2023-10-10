@@ -28,7 +28,7 @@
         "url": "biopv",
         "name": "BioPV",
         "description": "Photovoltaik, Menschen, und die Biosphäre: ein transdisziplinärer Ansatz ",
-        "entry_definitions": [1, 2]
+        "survey_entry_definitions": [1, 2]
       }
     },
     {
@@ -51,7 +51,7 @@
         "url": "demo",
         "name": "Demo",
         "description": "Ein DemoGRAPHISCHER Ansatz",
-        "entry_definitions": [3]
+        "survey_entry_definitions": [3]
       }
     }
 ]
