@@ -1,124 +1,131 @@
 {% load leaflet_tags %}
 {% load static %}
 <html>
-  <head>
-    {% leaflet_js %}
-    {% leaflet_css %}
-    <link rel="stylesheet" href="{% static 'bootstrap-5.3.2-dist/css/bootstrap.min.css' %}">
-    <link rel="stylesheet" href="{% static 'global.css' %}">
-    <link rel="stylesheet" href="{% static 'project.css' %}">
-    <script src="{% static 'bootstrap-5.3.2-dist/js/bootstrap.min.js' %}"></script>
-    <script src="{% static 'ui_reflections.js' %}"></script>
-    <script src="{% static 'util.js' %}"></script>
 
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+<head>
+  {% leaflet_js %}
+  {% leaflet_css %}
+  <link rel="stylesheet" href="{% static 'bootstrap-5.3.2-dist/css/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'global.css' %}">
+  <link rel="stylesheet" href="{% static 'project.css' %}">
+  <script src="{% static 'bootstrap-5.3.2-dist/js/bootstrap.min.js' %}"></script>
+  <script src="{% static 'ui_reflections.js' %}"></script>
+  <script src="{% static 'util.js' %}"></script>
 
-    <script>
-      window.addEventListener("map:init", function (event) {
-        var map = event.detail.map;
-        
-        addInformationControl(map);
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        // Start approx. in the center of Austria, later animate towards the user location if found
-        map.flyTo(new L.LatLng(47.597274, 14.750409), 8, {"animate": false});
+  <script>
+    window.addEventListener("map:init", function (event) {
+      // Show cookie banner if cookies are not set
+      var cookiePopup = new bootstrap.Modal(document.getElementById("cookiePopup"), {});
+      if (getCookie("cookies-allowed") != "yes") 
+        cookiePopup.show();
 
-        function onLocationFound(e) {
-          radius = Math.min(Math.max(e.coords.accuracy, 10.0), 1000.0);
-          L.circle([e.coords.latitude, e.coords.longitude], {radius: radius, weight: 5}).addTo(map);
-          
-          map.flyTo(new L.LatLng(e.coords.latitude, e.coords.longitude), 13, {duration: 1.0});
-        }
-          
+      var map = event.detail.map;
 
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(onLocationFound);
-        }
-        
-        let url = '{{ project_url }}'
-        map.on('click', function(e) {        
-            var popLocation = e.latlng;
-            var popup = L.popup({className: "entry-popup"})
-            .setLatLng(popLocation)
-            .setContent(`
+      addInformationControl(map);
+
+      // Start approx. in the center of Austria, later animate towards the user location if found
+      map.flyTo(new L.LatLng(47.597274, 14.750409), 8, { "animate": false });
+
+      function onLocationFound(e) {
+        radius = Math.min(Math.max(e.coords.accuracy, 10.0), 1000.0);
+        L.circle([e.coords.latitude, e.coords.longitude], { radius: radius, weight: 5 }).addTo(map);
+
+        map.flyTo(new L.LatLng(e.coords.latitude, e.coords.longitude), 13, { duration: 1.0 });
+      }
+
+
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(onLocationFound);
+      }
+
+      let url = '{{ project_url }}'
+      map.on('click', function (e) {
+        var popLocation = e.latlng;
+        var popup = L.popup({ className: "entry-popup" })
+          .setLatLng(popLocation)
+          .setContent(`
             <input id="entry-button" type="button" value="Neuer Eintrag" 
                 onclick="window.location.href = '/${url}/user-entry/${popLocation.lat}/${popLocation.lng}'" />
             `)
-            .openOn(map);        
-          });
-          
-          // Obtain context  variables (declared in views.py)
-          var locations = JSON.parse('{{ locations|escapejs }}');
-          var entries = JSON.parse('{{ entries|escapejs }}');
-
-          // Group the entries for each individual location
-          let entriesForLocations = entries.reduce((entriesForLocations, entry) => {
-            let entriesForLocation = (entriesForLocations[entry.fields.location_entry] || []);
-            entriesForLocation.push(entry);
-            entriesForLocations[entry.fields.location_entry] = entriesForLocation;
-            return entriesForLocations
-          }, {});
-
-          const surveyIcon = L.icon({
-            iconUrl: "{% static 'res/surveys-icon.png' %}",
-            iconSize:     [30, 40], // size of the icon
-            iconAnchor:   [30 / 2, 40 / 2], // point of the icon which will correspond to marker's location
-            shadowUrl: "{% static 'res/surveys-icon-shadow.png' %}",
-            shadowSize: [50, 30],
-            shadowAnchor: [30 / 2, 30 - 40 / 2]
-          });
-
-          for (id in locations) {
-            let location_id = locations[id].pk
-            // Only for obtaining lat/lon, not added to the map
-            L.geoJSON(JSON.parse(locations[id].fields.geom), { 
-              onEachFeature: function (feature, layer) {
-                latLng = feature.geometry.coordinates;
-              }
-            });
-            var parentDiv = document.createElement("div");
-            
-            // Add "add additional survey entry" button
-            var surveyEntryButton = document.createElement("button");
-            surveyEntryButton.innerHTML = "Diesen Standort ebenfalls bewerten";
-            let create_url = `/${url}/user-entry/${Number(latLng[1])}/${Number(latLng[0])}?location_entry_id=${locations[id].pk}`
-            surveyEntryButton.setAttribute("onclick", "window.location='" + create_url + "';");
-            surveyEntryButton.setAttribute("class", "btn btn-outline-secondary center-button");
-            
-            // Create bootstrap "carousel" element
-            var carousel = new Carousel()
-
-            parentDiv.appendChild(carousel.mainDiv);
-            //parentDiv.appendChild(document.createElement("hr"))
-            parentDiv.appendChild(surveyEntryButton);
-
-            var popup = L.popup().setContent(parentDiv);
-            L.geoJSON(
-              JSON.parse(locations[id].fields.geom), {
-                pointToLayer: function (feature, latlng) {
-                    return L.marker(latlng, {icon: surveyIcon})}
-              })
-              .addTo(map)
-              .bindPopup(popup, {className: "survey-popup", minHeight: 800, minWidth: 330})
-              .openPopup();
-
-            let isFirstForLocation = true;
-            let entriesForLocation = entriesForLocations[location_id]
-            for (entryId in entriesForLocation) {
-              // Obtain title of entry and the field-definition 
-              const title = entriesForLocation[entryId].fields.definition[0];
-              const fieldDef = entriesForLocation[entryId].fields.definition[1];
-
-              // The actual filled out field data
-              const fieldData = entriesForLocation[entryId].fields.field_data;
-
-              carousel.createEntry(title, fieldDef, fieldData, isFirstForLocation)
-              isFirstForLocation = false;
-            }
-          }
+          .openOn(map);
       });
 
-      class Carousel {
-        navigationHTML = `
+      // Obtain context  variables (declared in views.py)
+      var locations = JSON.parse('{{ locations|escapejs }}');
+      var entries = JSON.parse('{{ entries|escapejs }}');
+
+      // Group the entries for each individual location
+      let entriesForLocations = entries.reduce((entriesForLocations, entry) => {
+        let entriesForLocation = (entriesForLocations[entry.fields.location_entry] || []);
+        entriesForLocation.push(entry);
+        entriesForLocations[entry.fields.location_entry] = entriesForLocation;
+        return entriesForLocations
+      }, {});
+
+      const surveyIcon = L.icon({
+        iconUrl: "{% static 'res/surveys-icon.png' %}",
+        iconSize: [30, 40], // size of the icon
+        iconAnchor: [30 / 2, 40 / 2], // point of the icon which will correspond to marker's location
+        shadowUrl: "{% static 'res/surveys-icon-shadow.png' %}",
+        shadowSize: [50, 30],
+        shadowAnchor: [30 / 2, 30 - 40 / 2]
+      });
+
+      for (id in locations) {
+        let location_id = locations[id].pk
+        // Only for obtaining lat/lon, not added to the map
+        L.geoJSON(JSON.parse(locations[id].fields.geom), {
+          onEachFeature: function (feature, layer) {
+            latLng = feature.geometry.coordinates;
+          }
+        });
+        var parentDiv = document.createElement("div");
+
+        // Add "add additional survey entry" button
+        var surveyEntryButton = document.createElement("button");
+        surveyEntryButton.innerHTML = "Diesen Standort ebenfalls bewerten";
+        let create_url = `/${url}/user-entry/${Number(latLng[1])}/${Number(latLng[0])}?location_entry_id=${locations[id].pk}`
+        surveyEntryButton.setAttribute("onclick", "window.location='" + create_url + "';");
+        surveyEntryButton.setAttribute("class", "btn btn-outline-secondary center-button");
+
+        // Create bootstrap "carousel" element
+        var carousel = new Carousel()
+
+        parentDiv.appendChild(carousel.mainDiv);
+        //parentDiv.appendChild(document.createElement("hr"))
+        parentDiv.appendChild(surveyEntryButton);
+
+        var popup = L.popup().setContent(parentDiv);
+        L.geoJSON(
+          JSON.parse(locations[id].fields.geom), {
+          pointToLayer: function (feature, latlng) {
+            return L.marker(latlng, { icon: surveyIcon })
+          }
+        })
+          .addTo(map)
+          .bindPopup(popup, { className: "survey-popup", minHeight: 800, minWidth: 330 })
+          .openPopup();
+
+        let isFirstForLocation = true;
+        let entriesForLocation = entriesForLocations[location_id]
+        for (entryId in entriesForLocation) {
+          // Obtain title of entry and the field-definition 
+          const title = entriesForLocation[entryId].fields.definition[0];
+          const fieldDef = entriesForLocation[entryId].fields.definition[1];
+
+          // The actual filled out field data
+          const fieldData = entriesForLocation[entryId].fields.field_data;
+
+          carousel.createEntry(title, fieldDef, fieldData, isFirstForLocation)
+          isFirstForLocation = false;
+        }
+      }
+    });
+
+    class Carousel {
+      navigationHTML = `
           <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="prev">
             <span class="carousel-control-prev-icon" aria-hidden="true"></span>
             <span class="visually-hidden">Previous</span>
@@ -128,181 +135,216 @@
             <span class="visually-hidden">Next</span>
           </button>
         `.trim();
-        elementsCount = 0;
+      elementsCount = 0;
 
-        constructor() {
-          // Create carousel
-          this.mainDiv = document.createElement("div");
-          let attributes = {"id": "carouselExampleDark", "class": "carousel carousel-dark slide"};
-          Object.entries(attributes).forEach(([key, val]) => this.mainDiv.setAttribute(key, val));
+      constructor() {
+        // Create carousel
+        this.mainDiv = document.createElement("div");
+        let attributes = { "id": "carouselExampleDark", "class": "carousel carousel-dark slide" };
+        Object.entries(attributes).forEach(([key, val]) => this.mainDiv.setAttribute(key, val));
 
-          // Inner carousel elements
-          this.indicatorsDiv = document.createElement("div");
-          this.indicatorsDiv.setAttribute("class", "carousel-indicators");
+        // Inner carousel elements
+        this.indicatorsDiv = document.createElement("div");
+        this.indicatorsDiv.setAttribute("class", "carousel-indicators");
 
-          this.itemsDiv = document.createElement("div");
-          this.itemsDiv.setAttribute("class", "carousel-inner");
-          this.itemsDiv.innerHTML = this.navigationHTML;
+        this.itemsDiv = document.createElement("div");
+        this.itemsDiv.setAttribute("class", "carousel-inner");
+        this.itemsDiv.innerHTML = this.navigationHTML;
 
-          this.mainDiv.appendChild(this.itemsDiv);
-          this.mainDiv.appendChild(this.indicatorsDiv);
-        }
-
-        createEntry(title, fieldDef, fieldData, active, htmlReflections) {
-          let innerHTML = `<h2>${title}</h2>`;
-
-          // Create the carousel item (i.e. one entry)
-          let itemDiv = document.createElement("div");
-          let itemDivAttributes = {
-            "class": "carousel-item" + (active ? " active" : ""), 
-            "data-bs-interval": "10000"};
-          Object.entries(itemDivAttributes).forEach(([key, val]) => itemDiv.setAttribute(key, val));
-
-          // Create the carousel indicator (i.e. button where carousel currently is)
-          var indicator = document.createElement("button");
-          let indicatorAttributes = {
-            "class": (active ? " active" : ""), 
-            "type": "button", 
-            "data-bs-target": "#carouselExampleDark", 
-            "data-bs-slide-to": this.elementsCount};
-          Object.entries(indicatorAttributes).forEach(([key, val]) => indicator.setAttribute(key, val));
-          
-          // Populate inner HTML
-          for (let fieldName in fieldData) {
-            // E.g. dropdown, radio, ...
-            const type = fieldDef[fieldName].type;
-            const value = fieldData[fieldName];
-            const getDisplayedHTML = type_display_reflections[type];
-            const html = getDisplayedHTML(fieldName, value);
-
-            innerHTML += `<div>${html.outerHTML}</div>`;
-          }
-          
-          // Div for proper padding
-          var paddingDiv = document.createElement("div");
-          paddingDiv.setAttribute("class", "padding-div");
-          paddingDiv.innerHTML = innerHTML;
-
-          this.indicatorsDiv.appendChild(indicator);
-          // Add fade to indicate scrollable 
-          let fadeTopDiv = document.createElement("div");
-          fadeTopDiv.setAttribute("class", "fade-top-div");
-          let fadeBotDiv = document.createElement("div");
-          fadeBotDiv.setAttribute("class", "fade-bot-div");
-          itemDiv.appendChild(fadeTopDiv);
-          itemDiv.appendChild(paddingDiv);
-          itemDiv.appendChild(fadeBotDiv);
-          this.itemsDiv.appendChild(itemDiv);
-
-          // Remove fade effect depending on scroll level
-          paddingDiv.addEventListener("scroll", (e) => {
-            let scrollPercentage = 100 * paddingDiv.scrollTop / (paddingDiv.scrollHeight-paddingDiv.clientHeight);
-            fadeBotDiv.style.opacity = 1 - (scrollPercentage / 100);
-            fadeTopDiv.style.opacity = (scrollPercentage / 100);
-            
-            console.log(paddingDiv);
-          })
-
-          this.elementsCount += 1;
-        }
+        this.mainDiv.appendChild(this.itemsDiv);
+        this.mainDiv.appendChild(this.indicatorsDiv);
       }
 
-      var unfolded = false;
-      function addInformationControl(map) {
-        var Button =  L.Control.extend({
-          options: {
-            position: 'topright'
-          },
-          onAdd: function (map) {
-            var container = L.DomUtil.create("div", "info");
-            container.type="div";
-            container.title="Informationen";
-            container.value = "i";
+      createEntry(title, fieldDef, fieldData, active, htmlReflections) {
+        let innerHTML = `<h2>${title}</h2>`;
 
-            container.classList.add("leaflet-control-layers")
-            container.classList.add("leaflet-control")
-            container.classList.add("leaflet-control-custom")
-            container.classList.add("info-div")
+        // Create the carousel item (i.e. one entry)
+        let itemDiv = document.createElement("div");
+        let itemDivAttributes = {
+          "class": "carousel-item" + (active ? " active" : ""),
+          "data-bs-interval": "10000"
+        };
+        Object.entries(itemDivAttributes).forEach(([key, val]) => itemDiv.setAttribute(key, val));
+
+        // Create the carousel indicator (i.e. button where carousel currently is)
+        var indicator = document.createElement("button");
+        let indicatorAttributes = {
+          "class": (active ? " active" : ""),
+          "type": "button",
+          "data-bs-target": "#carouselExampleDark",
+          "data-bs-slide-to": this.elementsCount
+        };
+        Object.entries(indicatorAttributes).forEach(([key, val]) => indicator.setAttribute(key, val));
+
+        // Populate inner HTML
+        for (let fieldName in fieldData) {
+          // E.g. dropdown, radio, ...
+          const type = fieldDef[fieldName].type;
+          const value = fieldData[fieldName];
+          const getDisplayedHTML = type_display_reflections[type];
+          const html = getDisplayedHTML(fieldName, value);
+
+          innerHTML += `<div>${html.outerHTML}</div>`;
+        }
+
+        // Div for proper padding
+        var paddingDiv = document.createElement("div");
+        paddingDiv.setAttribute("class", "padding-div");
+        paddingDiv.innerHTML = innerHTML;
+
+        this.indicatorsDiv.appendChild(indicator);
+        // Add fade to indicate scrollable 
+        let fadeTopDiv = document.createElement("div");
+        fadeTopDiv.setAttribute("class", "fade-top-div");
+        let fadeBotDiv = document.createElement("div");
+        fadeBotDiv.setAttribute("class", "fade-bot-div");
+        itemDiv.appendChild(fadeTopDiv);
+        itemDiv.appendChild(paddingDiv);
+        itemDiv.appendChild(fadeBotDiv);
+        this.itemsDiv.appendChild(itemDiv);
+
+        // Remove fade effect depending on scroll level
+        paddingDiv.addEventListener("scroll", (e) => {
+          let scrollPercentage = 100 * paddingDiv.scrollTop / (paddingDiv.scrollHeight - paddingDiv.clientHeight);
+          fadeBotDiv.style.opacity = 1 - (scrollPercentage / 100);
+          fadeTopDiv.style.opacity = (scrollPercentage / 100);
+
+          console.log(paddingDiv);
+        })
+
+        this.elementsCount += 1;
+      }
+    }
+
+    function closeModal() {
+      const cP = document.querySelector('#cookiePopup');
+      const modal = bootstrap.Modal.getInstance(cP);    
+      modal.hide();
+    }
+
+    var unfolded = false;
+    function addInformationControl(map) {
+      var Button = L.Control.extend({
+        options: {
+          position: 'topright'
+        },
+        onAdd: function (map) {
+          var container = L.DomUtil.create("div", "info");
+          container.type = "div";
+          container.title = "Informationen";
+          container.value = "i";
+
+          container.classList.add("leaflet-control-layers")
+          container.classList.add("leaflet-control")
+          container.classList.add("leaflet-control-custom")
+          container.classList.add("info-div")
+          container.style.width = "48px";
+          container.style.height = "48px";
+
+          // Escape project description unsafe HTML chars
+          let safe_proj_desc = escapeHtml(`{{ project_description }}`)
+
+          // Add an initally hidden div for the info text
+          div = document.createElement("div");
+          div.id = "info-text";
+          div.innerHTML = `<div>${safe_proj_desc}</div>`;
+          div.style.display = "none";
+          container.appendChild(div);
+
+          // Add a hyperlink to toggle the info text (mobile applications)
+          a = document.createElement("a");
+          a.id = "info-toggle";
+          a.href = "#";
+          a.title = "Informationen";
+          container.appendChild(a);
+
+          // Add a custom icon to the leaflet container
+          svgImg = document.createElement("img");
+          svgImg.id = "info-icon";
+          svgImg.src = "{% static 'res/info.svg' %}";
+          svgImg.width = "30";
+          svgImg.height = "30";
+          a.appendChild(svgImg);
+
+          unfoldInfo = function () {
+            if (unfolded) return;
+            document.getElementById("info-text").style.display = "block";
+            container.style.width = "60%";
+            container.style.height = "auto";
+            unfolded = true;
+            document.addEventListener("click", function (e) {
+              if (e.target != container && e.target != a && e.target != svgImg) {
+                foldInfo();
+              }
+            });
+          };
+
+          foldInfo = function () {
+            // hide info text
+            if (!unfolded) return;
+            document.getElementById("info-text").style.display = "none";
             container.style.width = "48px";
             container.style.height = "48px";
+            unfolded = false;
+          };
 
-            // Escape project description unsafe HTML chars
-            let safe_proj_desc = escapeHtml(`{{ project_description }}`)
-
-            // Add an initally hidden div for the info text
-            div = document.createElement("div");
-            div.id = "info-text";
-            div.innerHTML = `<div>${safe_proj_desc}</div>`;
-            div.style.display = "none";
-            container.appendChild(div);
-
-            // Add a hyperlink to toggle the info text (mobile applications)
-            a = document.createElement("a");
-            a.id = "info-toggle";
-            a.href = "#";
-            a.title = "Informationen";
-            container.appendChild(a);
-
-            // Add a custom icon to the leaflet container
-            svgImg = document.createElement("img");
-            svgImg.id = "info-icon";
-            svgImg.src = "{% static 'res/info.svg' %}";
-            svgImg.width = "30";
-            svgImg.height = "30";
-            a.appendChild(svgImg);
-
-            unfoldInfo  = function() {
-              if (unfolded) return;
-              document.getElementById("info-text").style.display = "block";
-              container.style.width = "60%";
-              container.style.height = "auto";
-              unfolded = true;
-              document.addEventListener("click", function(e) {
-                if (e.target != container && e.target != a && e.target != svgImg) {
-                  foldInfo();
-                }
-              });
-            };
-
-            foldInfo = function() {
-              // hide info text
-              if (!unfolded) return;
-              document.getElementById("info-text").style.display = "none";
-              container.style.width = "48px";
-              container.style.height = "48px";
-              unfolded = false;
-            };
-
-            // Mouse over event shows project description
-            var unfoldEvents = {
-              "mouseover": container,
-              "click": a 
-            }
-            Object.entries(unfoldEvents).forEach( ([evt, el]) => 
-              el.addEventListener(evt, unfoldInfo, false)
-            );
-            
-            // Mouse out event shows resets
-            var foldEvents = {
-              "mouseout": container,
-            }
-            Object.entries(foldEvents).forEach( ([evt, el]) => 
-              el.addEventListener(evt, foldInfo, false)
-            );
-
-            ["click"].forEach( (evt) => 
-              container.addEventListener(evt, function(e) {e.stopPropagation();}, false)
-            );
-
-            return container;
+          // Mouse over event shows project description
+          var unfoldEvents = {
+            "mouseover": container,
+            "click": a
           }
-        });
-        map.addControl(new Button());
-      }
-    </script>
-  </head>
-  <body>
-    <h1>{{ project_name }} Web GIS</h1>
-    {% leaflet_map "main" %}
-  </body>
+          Object.entries(unfoldEvents).forEach(([evt, el]) =>
+            el.addEventListener(evt, unfoldInfo, false)
+          );
+
+          // Mouse out event shows resets
+          var foldEvents = {
+            "mouseout": container,
+          }
+          Object.entries(foldEvents).forEach(([evt, el]) =>
+            el.addEventListener(evt, foldInfo, false)
+          );
+
+          ["click"].forEach((evt) =>
+            container.addEventListener(evt, function (e) { e.stopPropagation(); }, false)
+          );
+
+          return container;
+        }
+      });
+      map.addControl(new Button());
+    }
+  </script>
+</head>
+
+<body>
+  <h1>{{ project_name }} Web GIS</h1>
+  {% leaflet_map "main" %}
+  <div class="modal fade" id="cookiePopup" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title " id="exampleModalLabel">Cookies</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div>
+            Diese Website kann Cookies verwenden, um demografische Nutzereingaben lokal zu speichern.
+            Diese Cookies können nur von dieser Website abgefragt werden und werden nicht mit Dritten geteilt.
+            Werden die Cookies abgelehnt, kann die Option zum Merken der demografischen Daten nicht angeboten werden.
+            Die Nutzung der Website ist davon nicht beeinträchtigt.
+            <br><br>
+            Gesetzte Cookies werden für 7 Tage gespeichert und danach automatisch gelöscht.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Verweigern</button>
+          <button type="button" onClick='(() => {  setCookie("cookies-allowed", "yes", 7); closeModal(); })()' class="btn btn-primary">Akzeptieren</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+
 </html>
