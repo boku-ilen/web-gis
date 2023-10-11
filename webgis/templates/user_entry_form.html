@@ -42,6 +42,8 @@
 
               <hr>
               
+              <div id="save-input-div"><input type="checkbox" id="save-input-checkbox"> Eingaben merken und nächstes mal vorausfüllen</div>
+
               <button class="btn btn-outline-secondary" onclick="showSurvey()">Zurück</button>
               <button class="btn btn-outline-primary" onclick="createEntry()">Absenden</button>
             </div>
@@ -71,6 +73,47 @@
 
     <script>
 
+      // From https://www.w3schools.com/js/js_cookies.asp
+      function setCookie(cname, cvalue, exdays) {
+        const d = new Date();
+        d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+        let expires = "expires="+d.toUTCString();
+        let samesite = "SameSite=Strict"; // Cookie is only usable by this site, not by others
+        document.cookie = cname + "=" + cvalue + ";" + expires + ";" + samesite + ";" + "path=/" + location.pathname.split("/")[1];
+      }
+
+      function getCookie(cname) {
+        let name = cname + "=";
+        let ca = document.cookie.split(';');
+        for(let i = 0; i < ca.length; i++) {
+          let c = ca[i];
+          while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+          }
+          if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+          }
+        }
+        return "";
+      }
+
+      function formSerialize(data) {
+          //https://stackoverflow.com/a/44033425/1869660
+          return new URLSearchParams(data).toString();
+      }
+
+      function formDeserialize(form, data) {
+          const entries = (new URLSearchParams(data)).entries();
+          for(const [key, val] of entries) {
+              //http://javascript-coder.com/javascript-form/javascript-form-value.phtml
+              const input = form.elements[key];
+              switch(input.type) {
+                  case 'checkbox': input.checked = !!val; break;
+                  default:         input.value = val;     break;
+              }
+          }
+      }
+
       // Get the field definitions of current entry definition using the pk(id) from HTML
       function getIdFromHtml() {
         return document.getElementById("entryDefs").value
@@ -95,6 +138,24 @@
         var demographicFormData = new FormData(document.getElementById("demographic-form"));
         var demographicFieldData = {};
         demographicFormData.forEach((_, key) => demographicFieldData[key] = demographicFormData.getAll(key));
+
+        // Should we save the demographic input as a cookie?
+        var should_save_input = document.getElementById("save-input-checkbox").checked;
+
+        console.log(should_save_input);
+
+        // Check whether we're allowed to save cookies
+        // (the checkbox should be hidden otherwise, but just to be save, check again)
+        if (getCookie("cookies-allowed") == "yes") {
+           // Check whether we should save the input
+          if (Object.keys(demographicFieldData).length > 0 && should_save_input) {
+            // Serialize and save the formdata
+            setCookie("demographic-prefill", formSerialize(demographicFormData), 7);
+          } else {
+            // Otherwise, delete the cookie entry
+            setCookie("demographic-prefill", "", 7);
+          }
+        }
 
         var object = {
           "project": "{{ project_url }}",
@@ -198,6 +259,22 @@
       }
 
       showSurvey();
+
+      // TODO: Set this in a cookie banner if the user accepts
+      setCookie("cookies-allowed", "yes", 7);
+
+      // Check if we're allowed to use cookies and therefore able to save the demographic input and pre-fill the form
+      if (getCookie("cookies-allowed") != "yes") {
+        document.getElementById("save-input-div").style.display = "none";
+      } else {
+        document.getElementById("save-input-div").style.display = "block";
+
+        // Pre-fill the form if we have data for it
+        var prefill_cookie = getCookie("demographic-prefill");
+        if (prefill_cookie != "") {
+          formDeserialize(document.getElementById("demographic-form"), prefill_cookie);
+        }
+      }
 
       // Load the marker from the url params
       var marker
