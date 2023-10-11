@@ -8,11 +8,12 @@ html, body{
  h1 {
     position: absolute;
     color: white;
-    padding-left: 2em;
+    padding-left: 60px;
+    padding-right: 80px;
     padding-top: 0.2em;
     z-index: 999;
     font-size: 2em;
-    color: rgb(0, 175, 255);
+    color: rgb(0, 155, 205);
     mix-blend-mode: difference;
  }
 
