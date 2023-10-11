@@ -60,14 +60,17 @@
           }, {});
 
           const surveyIcon = L.icon({
-            iconUrl: "{% static 'res/surveys-icon.svg' %}",
-            iconSize:     [30, 30], // size of the icon
-            iconAnchor:   [30 / 2, 30 / 2], // point of the icon which will correspond to marker's location
+            iconUrl: "{% static 'res/surveys-icon.png' %}",
+            iconSize:     [30, 40], // size of the icon
+            iconAnchor:   [30 / 2, 40 / 2], // point of the icon which will correspond to marker's location
+            shadowUrl: "{% static 'res/surveys-icon-shadow.png' %}",
+            shadowSize: [50, 30],
+            shadowAnchor: [30 / 2, 30 - 40 / 2]
           });
 
           for (id in locations) {
             let location_id = locations[id].pk
-            // Obtain lat lon from location
+            // Only for obtaining lat/lon, not added to the map
             L.geoJSON(JSON.parse(locations[id].fields.geom), { 
               onEachFeature: function (feature, layer) {
                 latLng = feature.geometry.coordinates;
