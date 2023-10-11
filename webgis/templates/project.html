@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="{% static 'bootstrap-5.3.2-dist/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'global.css' %}">
     <link rel="stylesheet" href="{% static 'project.css' %}">
-    <link rel="stylesheet" href="{% static 'bootstrap-5.3.2-dist/css/bootstrap.min.css' %}">
     <script src="{% static 'bootstrap-5.3.2-dist/js/bootstrap.min.js' %}"></script>
     <script src="{% static 'ui_reflections.js' %}"></script>
     <script src="{% static 'util.js' %}"></script>
@@ -75,39 +74,18 @@
             });
             var parentDiv = document.createElement("div");
             
-            // Add survey entry button
+            // Add "add additional survey entry" button
             var surveyEntryButton = document.createElement("button");
             surveyEntryButton.innerHTML = "Diesen Standort ebenfalls bewerten";
             let create_url = `/${url}/user-entry/${Number(latLng[1])}/${Number(latLng[0])}?location_entry_id=${locations[id].pk}`
             surveyEntryButton.setAttribute("onclick", "window.location='" + create_url + "';");
-            surveyEntryButton.setAttribute("class", "btn btn-outline-primary center-button");
+            surveyEntryButton.setAttribute("class", "btn btn-outline-secondary center-button");
+            
+            // Create bootstrap "carousel" element
+            var carousel = new Carousel()
 
-            // Create carousel
-            var carousel = document.createElement("div");
-            let attributes = {"id": "carouselExampleDark", "class": "carousel carousel-dark slide"};
-            Object.entries(attributes).forEach(([key, val]) => carousel.setAttribute(key, val));
-
-            // Inner carousel elements
-            var carouselIndicatorsDiv = document.createElement("div");
-            carouselIndicatorsDiv.setAttribute("class", "carousel-indicators");
-            carousel.appendChild(carouselIndicatorsDiv);
-
-            var carouselInnerDiv = document.createElement("div");
-            carouselInnerDiv.setAttribute("class", "carousel-inner");
-            carouselInnerDiv.innerHTML = `
-            <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="prev">
-              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-              <span class="visually-hidden">Previous</span>
-            </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="next">
-              <span class="carousel-control-next-icon" aria-hidden="true"></span>
-              <span class="visually-hidden">Next</span>
-            </button>
-            `.trim();
-
-            carousel.appendChild(carouselInnerDiv);
-            parentDiv.appendChild(carousel);
-            parentDiv.appendChild(document.createElement("hr"))
+            parentDiv.appendChild(carousel.mainDiv);
+            //parentDiv.appendChild(document.createElement("hr"))
             parentDiv.appendChild(surveyEntryButton);
 
             var popup = L.popup().setContent(parentDiv);
@@ -122,53 +100,109 @@
 
             let isFirstForLocation = true;
             let entriesForLocation = entriesForLocations[location_id]
-            for (entry_id in entriesForLocation) {
-              var paddingDiv = document.createElement("div");
-              paddingDiv.setAttribute("class", "padding-div")
+            for (entryId in entriesForLocation) {
               // Obtain title of entry and the field-definition 
-              const title = entriesForLocation[entry_id].fields.definition[0];
-              const field_def = entriesForLocation[entry_id].fields.definition[1];
-
-              var marker_html = `<h2>${title}</h2>`;
+              const title = entriesForLocation[entryId].fields.definition[0];
+              const fieldDef = entriesForLocation[entryId].fields.definition[1];
 
               // The actual filled out field data
-              const field_data = entriesForLocation[entry_id].fields.field_data;
+              const fieldData = entriesForLocation[entryId].fields.field_data;
 
-              // Create the carousel item (i.e. one entry)
-              var itemDiv = document.createElement("div");
-              let itemDivAttributes = {
-                "class": "carousel-item" + (isFirstForLocation ? " active" : ""), 
-                "data-bs-interval": "10000"};
-              Object.entries(itemDivAttributes).forEach(([key, val]) => itemDiv.setAttribute(key, val));
-
-              // Create the carousel indicator (i.e. button where carousel currently is)
-              var indicator = document.createElement("button");
-              let indicatorAttributes = {
-                "class": (isFirstForLocation ? " active" : ""), 
-                "type": "button", 
-                "data-bs-target": "#carouselExampleDark", 
-                "data-bs-slide-to": entry_id};
-              Object.entries(indicatorAttributes).forEach(([key, val]) => indicator.setAttribute(key, val));
-              
-              for (field_name in field_data) {
-                // E.g. dropdown, radio, ...
-                const type = field_def[field_name].type;
-                const value = field_data[field_name];
-                const get_displayed_html = type_display_reflections[type];
-                const html = get_displayed_html(field_name, value);
-
-                marker_html += `<div>${html.outerHTML}</div>`;
-              }
-
-              paddingDiv.innerHTML = marker_html;
-
-              carouselIndicatorsDiv.appendChild(indicator);
-              itemDiv.appendChild(paddingDiv)
-              carouselInnerDiv.appendChild(itemDiv);
+              carousel.createEntry(title, fieldDef, fieldData, isFirstForLocation)
               isFirstForLocation = false;
             }
           }
       });
+
+      class Carousel {
+        navigationHTML = `
+          <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+          </button>
+          <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+          </button>
+        `.trim();
+        elementsCount = 0;
+
+        constructor() {
+          // Create carousel
+          this.mainDiv = document.createElement("div");
+          let attributes = {"id": "carouselExampleDark", "class": "carousel carousel-dark slide"};
+          Object.entries(attributes).forEach(([key, val]) => this.mainDiv.setAttribute(key, val));
+
+          // Inner carousel elements
+          this.indicatorsDiv = document.createElement("div");
+          this.indicatorsDiv.setAttribute("class", "carousel-indicators");
+
+          this.itemsDiv = document.createElement("div");
+          this.itemsDiv.setAttribute("class", "carousel-inner");
+          this.itemsDiv.innerHTML = this.navigationHTML;
+
+          this.mainDiv.appendChild(this.itemsDiv);
+          this.mainDiv.appendChild(this.indicatorsDiv);
+        }
+
+        createEntry(title, fieldDef, fieldData, active, htmlReflections) {
+          let innerHTML = `<h2>${title}</h2>`;
+
+          // Create the carousel item (i.e. one entry)
+          let itemDiv = document.createElement("div");
+          let itemDivAttributes = {
+            "class": "carousel-item" + (active ? " active" : ""), 
+            "data-bs-interval": "10000"};
+          Object.entries(itemDivAttributes).forEach(([key, val]) => itemDiv.setAttribute(key, val));
+
+          // Create the carousel indicator (i.e. button where carousel currently is)
+          var indicator = document.createElement("button");
+          let indicatorAttributes = {
+            "class": (active ? " active" : ""), 
+            "type": "button", 
+            "data-bs-target": "#carouselExampleDark", 
+            "data-bs-slide-to": this.elementsCount};
+          Object.entries(indicatorAttributes).forEach(([key, val]) => indicator.setAttribute(key, val));
+          
+          // Populate inner HTML
+          for (let fieldName in fieldData) {
+            // E.g. dropdown, radio, ...
+            const type = fieldDef[fieldName].type;
+            const value = fieldData[fieldName];
+            const getDisplayedHTML = type_display_reflections[type];
+            const html = getDisplayedHTML(fieldName, value);
+
+            innerHTML += `<div>${html.outerHTML}</div>`;
+          }
+          
+          // Div for proper padding
+          var paddingDiv = document.createElement("div");
+          paddingDiv.setAttribute("class", "padding-div");
+          paddingDiv.innerHTML = innerHTML;
+
+          this.indicatorsDiv.appendChild(indicator);
+          // Add fade to indicate scrollable 
+          let fadeTopDiv = document.createElement("div");
+          fadeTopDiv.setAttribute("class", "fade-top-div");
+          let fadeBotDiv = document.createElement("div");
+          fadeBotDiv.setAttribute("class", "fade-bot-div");
+          itemDiv.appendChild(fadeTopDiv);
+          itemDiv.appendChild(paddingDiv);
+          itemDiv.appendChild(fadeBotDiv);
+          this.itemsDiv.appendChild(itemDiv);
+
+          // Remove fade effect depending on scroll level
+          paddingDiv.addEventListener("scroll", (e) => {
+            let scrollPercentage = 100 * paddingDiv.scrollTop / (paddingDiv.scrollHeight-paddingDiv.clientHeight);
+            fadeBotDiv.style.opacity = 1 - (scrollPercentage / 100);
+            fadeTopDiv.style.opacity = (scrollPercentage / 100);
+            
+            console.log(paddingDiv);
+          })
+
+          this.elementsCount += 1;
+        }
+      }
 
       var unfolded = false;
       function addInformationControl(map) {
