@@ -68,35 +68,11 @@
     <link rel="stylesheet" href="{% static 'global.css' %}">
     <link rel="stylesheet" href="{% static 'entry.css' %}">
     <script src="{% static 'ui_reflections.js' %}"></script>
+    <script src="{% static 'util.js' %}"></script>
 
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <script>
-
-      // From https://www.w3schools.com/js/js_cookies.asp
-      function setCookie(cname, cvalue, exdays) {
-        const d = new Date();
-        d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
-        let expires = "expires="+d.toUTCString();
-        let samesite = "SameSite=Strict"; // Cookie is only usable by this site, not by others
-        document.cookie = cname + "=" + cvalue + ";" + expires + ";" + samesite + ";" + "path=/" + location.pathname.split("/")[1];
-      }
-
-      function getCookie(cname) {
-        let name = cname + "=";
-        let ca = document.cookie.split(';');
-        for(let i = 0; i < ca.length; i++) {
-          let c = ca[i];
-          while (c.charAt(0) == ' ') {
-            c = c.substring(1);
-          }
-          if (c.indexOf(name) == 0) {
-            return c.substring(name.length, c.length);
-          }
-        }
-        return "";
-      }
-
       function formSerialize(data) {
           //https://stackoverflow.com/a/44033425/1869660
           return new URLSearchParams(data).toString();
@@ -257,11 +233,7 @@
         survey_button.innerHTML = "Absenden"
         survey_button.onclick = createEntry
       }
-
       showSurvey();
-
-      // TODO: Set this in a cookie banner if the user accepts
-      setCookie("cookies-allowed", "yes", 7);
 
       // Check if we're allowed to use cookies and therefore able to save the demographic input and pre-fill the form
       if (getCookie("cookies-allowed") != "yes") {
