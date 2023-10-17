@@ -68,7 +68,6 @@ def create_entry(request: WSGIRequest, project_url):
             # Otherwise, we need to create it
             else:
                 location_entry = LocationEntry(project=project, geom=rq["geom"])
-                location_entry.save()
 
             new_survey_entry = SurveyEntry(
                 project=project,
@@ -76,10 +75,8 @@ def create_entry(request: WSGIRequest, project_url):
                 location_entry=location_entry,
                 field_data=rq["survey_data"]
             )
-            new_survey_entry.save()
             
             if project.demographic_entry_definition:
-                
                 # Validate
                 is_valid, error, attribute = validate_entry_data(rq["demographic_data"], project.demographic_entry_definition.field_definition)
                 if not is_valid:
@@ -91,7 +88,16 @@ def create_entry(request: WSGIRequest, project_url):
                     definition=project.demographic_entry_definition,
                     field_data=rq["demographic_data"]
                 )
+                
+                # Save all if valid
+                location_entry.save()
+                new_survey_entry.save()
                 new_demographic_entry.save()
+            else:
+                # No demographic entry definition, so we can save everything
+                location_entry.save()
+                new_survey_entry.save()
+
             # return success
             return JsonResponse({"success": True})
         except Exception:
