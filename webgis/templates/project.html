@@ -49,12 +49,17 @@
             <input id="entry-button" type="button" value="Neuer Eintrag" 
                 onclick="window.location.href = '/${url}/user-entry/${popLocation.lat}/${popLocation.lng}'" />
             `)
-          .openOn(map);
+          .addTo(map);
       });
 
       // Obtain context  variables (declared in views.py)
       var locations = JSON.parse('{{ locations|escapejs }}');
       var entries = JSON.parse('{{ entries|escapejs }}');
+
+      // Obtain latest entry (highest PK)
+      // FIXME: not necessarly the latest
+      let pks = entries.map(e => e.pk);
+      var latest = Math.max(...pks);
 
       // Group the entries for each individual location
       let entriesForLocations = entries.reduce((entriesForLocations, entry) => {
@@ -98,7 +103,7 @@
         parentDiv.appendChild(surveyEntryButton);
 
         var popup = L.popup().setContent(parentDiv);
-        L.geoJSON(
+        var marker = L.geoJSON(
           JSON.parse(locations[id].fields.geom), {
           pointToLayer: function (feature, latlng) {
             return L.marker(latlng, { icon: surveyIcon })
@@ -106,20 +111,25 @@
         })
           .addTo(map)
           .bindPopup(popup, { className: "survey-popup", minHeight: 800, minWidth: 330 })
-          .openPopup();
 
         let isFirstForLocation = true;
         let entriesForLocation = entriesForLocations[location_id]
-        for (entryId in entriesForLocation) {
+        for (entryNum in entriesForLocation) {
           // Obtain title of entry and the field-definition 
-          const title = entriesForLocation[entryId].fields.definition[0];
-          const fieldDef = entriesForLocation[entryId].fields.definition[1];
+          const title = entriesForLocation[entryNum].fields.definition[0];
+          const fieldDef = entriesForLocation[entryNum].fields.definition[1];
 
           // The actual filled out field data
-          const fieldData = entriesForLocation[entryId].fields.field_data;
+          const fieldData = entriesForLocation[entryNum].fields.field_data;
+          carousel.createEntry(title, fieldDef, fieldData, isFirstForLocation);
 
-          carousel.createEntry(title, fieldDef, fieldData, isFirstForLocation)
-          isFirstForLocation = false;
+          // Open popup if it is the latest entry
+          if (entriesForLocation[entryNum].pk == latest) {
+            carousel.setEntryActive(entryNum);
+            marker.openPopup();
+          }
+
+          isFirstForLocation = false;          
         }
       }
     });
@@ -153,6 +163,18 @@
 
         this.mainDiv.appendChild(this.itemsDiv);
         this.mainDiv.appendChild(this.indicatorsDiv);
+      }
+
+      setEntryActive(entryNum) {
+        Array.from(this.itemsDiv.children).forEach((child) => {
+          child.classList.remove("active");
+        });
+        Array.from(this.indicatorsDiv.children).forEach((child) => {
+          child.classList.remove("active");
+        });
+
+        Array.from(this.itemsDiv.children)[entryNum].classList.add("active");
+        Array.from(this.indicatorsDiv.children)[entryNum].classList.add("active");
       }
 
       createEntry(title, fieldDef, fieldData, active, htmlReflections) {
