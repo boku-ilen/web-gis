@@ -25,6 +25,24 @@
 
       addInformationControl(map);
 
+      // Initially show information without hovering
+      // Close on button click
+      let button = document.createElement("button");
+      button.classList.add("btn");
+      button.classList.add("btn-outline-secondary");
+      button.innerHTML = "Alles klar!";
+      button.style.margin = "10px";
+      button.addEventListener ("click", function() {
+        document.getElementById("info-text").style.display = "none";
+        document.getElementById("info-div").style.width = "48px";
+        document.getElementById("info-div").style.height = "48px";
+        button.style.display = "none";
+      });
+      document.getElementById("info-text").style.display = "block";
+      document.getElementById("info-div").style.width = "60%";
+      document.getElementById("info-div").style.height = "auto";
+      document.getElementById("info-div").appendChild(button)
+
       // Start approx. in the center of Austria, later animate towards the user location if found
       map.flyTo(new L.LatLng(47.597274, 14.750409), 8, { "animate": false });
 
@@ -252,6 +270,7 @@
         },
         onAdd: function (map) {
           var container = L.DomUtil.create("div", "info");
+          container.setAttribute("id", "info-div");
           container.type = "div";
           container.title = "Informationen";
           container.value = "i";
@@ -288,12 +307,14 @@
           svgImg.height = "30";
           a.appendChild(svgImg);
 
-          unfoldInfo = function () {
+          var unfoldInfo = function () {
             if (unfolded) return;
             document.getElementById("info-text").style.display = "block";
             container.style.width = "60%";
             container.style.height = "auto";
             unfolded = true;
+            
+            // For mobile devices as mouse over won't work
             document.addEventListener("click", function (e) {
               if (e.target != container && e.target != a && e.target != svgImg) {
                 foldInfo();
@@ -301,7 +322,7 @@
             });
           };
 
-          foldInfo = function () {
+          var foldInfo = function () {
             // hide info text
             if (!unfolded) return;
             document.getElementById("info-text").style.display = "none";
@@ -327,6 +348,7 @@
             el.addEventListener(evt, foldInfo, false)
           );
 
+          // Stop event propagation to avoid clicking through div
           ["click"].forEach((evt) =>
             container.addEventListener(evt, function (e) { e.stopPropagation(); }, false)
           );
