@@ -137,18 +137,22 @@ const type_gui_reflections = {
 
         // The actual radios in the differential
         let i = 0
+        var keys = []
         params.rowDefinitions.forEach(definition => {
             let tr = document.createElement("tr");
             let tdDef0 = document.createElement("td");
             tdDef0.innerHTML = definition[0];
             tr.appendChild(tdDef0);
             
+            // Save keys for later, as we have to alter the submit data slightly
+            let radioName = (`${definition[0]}/${definition[1]}`)
+            keys.push(radioName);
+
             for (const dataNum of Array(params.scales.length).keys()) {
                 let td = document.createElement("td");
                 let radio = document.createElement("input");
-                let radioName = encodeURIComponent(`${definition[0]}/${definition[1]}`)
                 let attributes = {"type": "radio", "name": radioName, "value": String(dataNum)};
-                Object.entries(attributes).forEach(([key, val]) =>  radio.setAttribute(key, val));
+                Object.entries(attributes).forEach(([key, val]) => radio.setAttribute(key, val));
                 td.appendChild(radio);
                 tr.appendChild(td)
             }
@@ -161,15 +165,21 @@ const type_gui_reflections = {
             i += 1;
         });
 
-        /* Before the input is sent, catch it and alter it to be one entry only instead of multiple */
+        // Before the input is sent, catch it and alter it to be one entry only instead of multiple,
+        // otherwise the server will reject the entry
+        // i.e. from radioName1: val1, radioName2: val2 to formName: [val1, val2]
         document.querySelector("form").addEventListener('formdata', (e) => {
-            let values = Array.from(e.formData.values())
-            let keys = Array.from(e.formData.keys())
-
-            keys.forEach((key) => { e.formData.delete(key); });
+            let values = []
+            keys.forEach((key) => { 
+                values.push(e.formData.get(key)); 
+                e.formData.delete(key);
+                console.log(key);
+            });
+            console.log(values);
+            console.log(keys);
             e.formData.append(name, values);
+            console.log(e.formData);
         });
-
 
         return {"input": fieldset}
     }
@@ -250,6 +260,7 @@ const type_display_reflections = {
 
         return container;
     },
+    // TODO: proper display
     "SemanticDifferential": (name, value) => {
         let container = document.createElement("container");
 
