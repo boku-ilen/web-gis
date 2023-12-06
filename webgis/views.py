@@ -11,6 +11,14 @@ from django.core import serializers
 from django.core.handlers.wsgi import WSGIRequest
 
 
+def api_get_entries(request: WSGIRequest, project_url):
+    entries = SurveyEntry.objects.select_related().filter(project=project_url).values(
+        "field_data",
+        "location_entry__geom"
+    )
+    return JsonResponse(list(entries), safe=False)
+
+
 # Returns an is_valid boolean, an error message, and the related attribute title
 def validate_entry_data(entry_data, definition_data):
     # Check whether there is superfluous data
