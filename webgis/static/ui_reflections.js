@@ -182,6 +182,73 @@ const type_gui_reflections = {
         });
 
         return {"input": fieldset}
+    },
+    "MatrixQuestions": (name, params) => {
+        let fieldset = document.createElement("fieldset");
+        fieldset.setAttribute("id", name);   
+        fieldset.setAttribute("class", "form-check");
+        let table = document.createElement("table");
+        fieldset.appendChild(table);
+        let trScale = document.createElement("tr");
+        trScale.appendChild(document.createElement("th"));
+        table.appendChild(trScale);
+
+        // The "heading" (e.g. sehr, eher, teils)
+        params.scales.forEach(scale => {
+            let th = document.createElement("th");
+            th.innerHTML = scale
+            trScale.appendChild(th);
+        });
+
+        // The actual radios in the differential
+        let i = 0
+
+        var keys = []
+        params.questions.forEach(question => {
+            let trQuestion = document.createElement("tr");
+            let tdQuestion = document.createElement("td");
+            tdQuestion.setAttribute("colspan", 999);
+            tdQuestion.innerHTML = question;
+            trQuestion.appendChild(tdQuestion);
+            table.appendChild(trQuestion);
+
+            let tr = document.createElement("tr");
+            
+            // Save keys for later, as we have to alter the submit data slightly
+            keys.push(question);
+
+            // Add empty column for spacing
+            tr.appendChild(document.createElement("td"));
+            for (const dataNum of Array(params.scales.length).keys()) {
+                let td = document.createElement("td");
+                let radio = document.createElement("input");
+                let attributes = {"type": "radio", "name": question, "value": String(dataNum)};
+                Object.entries(attributes).forEach(([key, val]) => radio.setAttribute(key, val));
+                td.appendChild(radio);
+                tr.appendChild(td)
+            }
+
+            table.appendChild(tr);
+            i += 1;
+        });
+
+        // Before the input is sent, catch it and alter it to be one entry only instead of multiple,
+        // otherwise the server will reject the entry
+        // i.e. from radioName1: val1, radioName2: val2 to formName: [val1, val2]
+        document.querySelector("form").addEventListener('formdata', (e) => {
+            let values = []
+            keys.forEach((key) => { 
+                values.push(e.formData.get(key)); 
+                e.formData.delete(key);
+                console.log(key);
+            });
+            console.log(values);
+            console.log(keys);
+            e.formData.append(name, values);
+            console.log(e.formData);
+        });
+
+        return {"input": fieldset}
     }
 } 
 
@@ -262,6 +329,19 @@ const type_display_reflections = {
     },
     // TODO: proper display
     "SemanticDifferential": (name, value) => {
+        let container = document.createElement("container");
+
+        let label = document.createElement("label");
+        let description = document.createTextNode(name + ": " + value);
+
+        label.appendChild(description);
+        container.appendChild(label);
+
+        console.log(container);
+        return container;
+    },
+    // TODO: proper display
+    "MatrixQuestions": (name, value) => {
         let container = document.createElement("container");
 
         let label = document.createElement("label");
