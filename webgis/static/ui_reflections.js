@@ -117,6 +117,61 @@ const type_gui_reflections = {
         });
 
         return {"input": fieldset};
+    },
+    "SemanticDifferential": (name, params) => {
+        let fieldset = document.createElement("fieldset");
+        fieldset.setAttribute("id", name);   
+        fieldset.setAttribute("class", "form-check");
+        let table = document.createElement("table");
+        fieldset.appendChild(table);
+        let trScale = document.createElement("tr");
+        trScale.appendChild(document.createElement("th"));
+        table.appendChild(trScale);
+
+        // The "heading" (e.g. sehr, eher, teils)
+        params.scales.forEach(scale => {
+            let th = document.createElement("th");
+            th.innerHTML = scale
+            trScale.appendChild(th);
+        });
+
+        // The actual radios in the differential
+        let i = 0
+        params.rowDefinitions.forEach(definition => {
+            let tr = document.createElement("tr");
+            let tdDef0 = document.createElement("td");
+            tdDef0.innerHTML = definition[0];
+            tr.appendChild(tdDef0);
+            
+            for (const dataNum of Array(params.scales.length).keys()) {
+                let td = document.createElement("td");
+                let radio = document.createElement("input");
+                let radioName = encodeURIComponent(`${definition[0]}/${definition[1]}`)
+                let attributes = {"type": "radio", "name": radioName, "value": String(dataNum)};
+                Object.entries(attributes).forEach(([key, val]) =>  radio.setAttribute(key, val));
+                td.appendChild(radio);
+                tr.appendChild(td)
+            }
+
+            let tdDef1 = document.createElement("td");
+            tdDef1.innerHTML = definition[1];            
+            tr.appendChild(tdDef1);
+
+            table.appendChild(tr);
+            i += 1;
+        });
+
+        /* Before the input is sent, catch it and alter it to be one entry only instead of multiple */
+        document.querySelector("form").addEventListener('formdata', (e) => {
+            let values = Array.from(e.formData.values())
+            let keys = Array.from(e.formData.keys())
+
+            keys.forEach((key) => { e.formData.delete(key); });
+            e.formData.append(name, values);
+        });
+
+
+        return {"input": fieldset}
     }
 } 
 
@@ -193,6 +248,18 @@ const type_display_reflections = {
         label.appendChild(description);
         container.appendChild(label);
 
+        return container;
+    },
+    "SemanticDifferential": (name, value) => {
+        let container = document.createElement("container");
+
+        let label = document.createElement("label");
+        let description = document.createTextNode(name + ": " + value);
+
+        label.appendChild(description);
+        container.appendChild(label);
+
+        console.log(container);
         return container;
     }
 } 
