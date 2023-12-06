@@ -38,3 +38,10 @@ legend {
     height: 100%;
 }
 
+/* semantic differential style */
+table { margin-top: 10; margin-left: -35;}
+th {text-align:center;}
+td {
+    text-align:center;
+    padding: 15px;
+}
