@@ -173,12 +173,8 @@ const type_gui_reflections = {
             keys.forEach((key) => { 
                 values.push(e.formData.get(key)); 
                 e.formData.delete(key);
-                console.log(key);
             });
-            console.log(values);
-            console.log(keys);
             e.formData.append(name, values);
-            console.log(e.formData);
         });
 
         return {"input": fieldset}
@@ -240,12 +236,8 @@ const type_gui_reflections = {
             keys.forEach((key) => { 
                 values.push(e.formData.get(key)); 
                 e.formData.delete(key);
-                console.log(key);
             });
-            console.log(values);
-            console.log(keys);
             e.formData.append(name, values);
-            console.log(e.formData);
         });
 
         return {"input": fieldset}
@@ -337,7 +329,6 @@ const type_display_reflections = {
         label.appendChild(description);
         container.appendChild(label);
 
-        console.log(container);
         return container;
     },
     // TODO: proper display
@@ -350,7 +341,6 @@ const type_display_reflections = {
         label.appendChild(description);
         container.appendChild(label);
 
-        console.log(container);
         return container;
     }
 } 
