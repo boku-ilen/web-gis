@@ -246,7 +246,7 @@ const type_gui_reflections = {
 
 // How an applied entry will be displayed
 const type_display_reflections = {
-    "Dropdown": (name, value) => {
+    "Dropdown": (name, value, entryDef) => {
         let container = document.createElement("container");
 
         let label = document.createElement("label");
@@ -257,7 +257,7 @@ const type_display_reflections = {
 
         return container;
     },
-    "Comment": (name, value) => {
+    "Comment": (name, value, entryDef) => {
         let container = document.createElement("container");
 
         let label = document.createElement("label");
@@ -268,7 +268,7 @@ const type_display_reflections = {
 
         return container;
     },
-    "Spinbox": (name, value) => {
+    "Spinbox": (name, value, entryDef) => {
         let container = document.createElement("container");
 
         let label = document.createElement("label");
@@ -279,7 +279,7 @@ const type_display_reflections = {
 
         return container;
     },
-    "Image": (name, value) => {
+    "Image": (name, value, entryDef) => {
         let container = document.createElement("container");
 
         let label = document.createElement("label");
@@ -297,7 +297,7 @@ const type_display_reflections = {
 
         return container;
     },
-    "Radio": (name, value) => {
+    "Radio": (name, value, entryDef) => {
         let container = document.createElement("container");
 
         let label = document.createElement("label");
@@ -308,19 +308,7 @@ const type_display_reflections = {
 
         return container;
     },
-    "Checkbox": (name, value) => {
-        let container = document.createElement("container");
-
-        let label = document.createElement("label");
-        let description = document.createTextNode(name + ": " + value);
-
-        label.appendChild(description);
-        container.appendChild(label);
-
-        return container;
-    },
-    // TODO: proper display
-    "SemanticDifferential": (name, value) => {
+    "Checkbox": (name, value, entryDef) => {
         let container = document.createElement("container");
 
         let label = document.createElement("label");
@@ -332,7 +320,19 @@ const type_display_reflections = {
         return container;
     },
     // TODO: proper display
-    "MatrixQuestions": (name, value) => {
+    "SemanticDifferential": (name, value, entryDef) => {
+        let container = document.createElement("container");
+
+        let label = document.createElement("label");
+        let description = document.createTextNode(name + ": " + value);
+
+        label.appendChild(description);
+        container.appendChild(label);
+
+        return container;
+    },
+    // TODO: proper display
+    "MatrixQuestions": (name, value, entryDef) => {
         let container = document.createElement("container");
 
         let label = document.createElement("label");
