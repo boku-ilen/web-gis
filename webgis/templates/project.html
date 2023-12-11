@@ -194,13 +194,15 @@
         };
         Object.entries(indicatorAttributes).forEach(([key, val]) => indicator.setAttribute(key, val));
 
+        const entryDefs = JSON.parse('{{ survey_entry_definitions_js|escapejs }}')
         // Populate inner HTML
         for (let fieldName in fieldData) {
           // E.g. dropdown, radio, ...
           const type = fieldDef[fieldName].type;
           const value = fieldData[fieldName];
+          const entryDef = entryDefs[fieldName];
           const getDisplayedHTML = type_display_reflections[type];
-          const html = getDisplayedHTML(fieldName, value);
+          const html = getDisplayedHTML(fieldName, value, entrydef);
 
           innerHTML += `<div>${html.outerHTML}</div>`;
         }
