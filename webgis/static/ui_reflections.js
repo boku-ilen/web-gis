@@ -246,7 +246,7 @@ const type_gui_reflections = {
 
 // How an applied entry will be displayed
 const type_display_reflections = {
-    "Dropdown": (name, value, entryDef) => {
+    "Dropdown": (name, value, fieldDef) => {
         let container = document.createElement("container");
 
         let label = document.createElement("label");
@@ -257,7 +257,7 @@ const type_display_reflections = {
 
         return container;
     },
-    "Comment": (name, value, entryDef) => {
+    "Comment": (name, value, fieldDef) => {
         let container = document.createElement("container");
 
         let label = document.createElement("label");
@@ -268,7 +268,7 @@ const type_display_reflections = {
 
         return container;
     },
-    "Spinbox": (name, value, entryDef) => {
+    "Spinbox": (name, value, fieldDef) => {
         let container = document.createElement("container");
 
         let label = document.createElement("label");
@@ -279,7 +279,7 @@ const type_display_reflections = {
 
         return container;
     },
-    "Image": (name, value, entryDef) => {
+    "Image": (name, value, fieldDef) => {
         let container = document.createElement("container");
 
         let label = document.createElement("label");
@@ -297,7 +297,7 @@ const type_display_reflections = {
 
         return container;
     },
-    "Radio": (name, value, entryDef) => {
+    "Radio": (name, value, fieldDef) => {
         let container = document.createElement("container");
 
         let label = document.createElement("label");
@@ -308,19 +308,7 @@ const type_display_reflections = {
 
         return container;
     },
-    "Checkbox": (name, value, entryDef) => {
-        let container = document.createElement("container");
-
-        let label = document.createElement("label");
-        let description = document.createTextNode(name + ": " + value);
-
-        label.appendChild(description);
-        container.appendChild(label);
-
-        return container;
-    },
-    // TODO: proper display
-    "SemanticDifferential": (name, value, entryDef) => {
+    "Checkbox": (name, value, fieldDef) => {
         let container = document.createElement("container");
 
         let label = document.createElement("label");
@@ -332,13 +320,53 @@ const type_display_reflections = {
         return container;
     },
     // TODO: proper display
-    "MatrixQuestions": (name, value, entryDef) => {
+    "SemanticDifferential": (name, values, fieldDef) => {
         let container = document.createElement("container");
 
+        console.log(fieldDef);
+        values = values[0].split(",");
         let label = document.createElement("label");
-        let description = document.createTextNode(name + ": " + value);
+        let list = document.createElement("ul");
+        for (const [index, val] of values.entries()) {
+            let item = document.createElement("li");
+            
+            if(val == (fieldDef.params.scales.length - 1) / 2)
+                item.innerHTML = 
+                `${fieldDef.params.scales[val]}
+                 ${fieldDef.params.rowDefinitions[index][0]}/${fieldDef.params.rowDefinitions[index][1]}`;
+            else
+                item.innerHTML = 
+                `${fieldDef.params.scales[val]}
+                ${fieldDef.params.rowDefinitions[index][0 ? val < fieldDef.params.scales.length : 1]}`;
 
+            list.appendChild(item);
+        }
+
+        let description = document.createTextNode(name + ": ");
         label.appendChild(description);
+        
+        label.appendChild(list);
+        container.appendChild(label);
+
+        return container;
+    },
+    // TODO: proper display
+    "MatrixQuestions": (name, values, fieldDef) => {
+        let container = document.createElement("container");
+
+        values = values[0].split(",");
+        let label = document.createElement("label");
+        let list = document.createElement("ul");
+        for (const [index, val] of values.entries()) {
+            let item = document.createElement("li");
+            item.innerText = `${fieldDef.params.questions[index]}: ${fieldDef.params.scales[val]}`;
+            list.appendChild(item);
+        }
+
+        let description = document.createTextNode(name + ": ");
+        label.appendChild(description);
+        
+        label.appendChild(list);
         container.appendChild(label);
 
         return container;

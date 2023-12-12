@@ -140,8 +140,6 @@ class ProjectView(TemplateView):
         
         context['project_name'] = project.name
         context['project_description'] = project.description
-        context["survey_entry_definitions_js"] = serializers.serialize("json", context["survey_entry_definitions"])
-
         entries = SurveyEntry.objects.filter(project=self.project_url)
         locations = LocationEntry.objects.filter(project=self.project_url)
 
