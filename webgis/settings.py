@@ -143,5 +143,7 @@ LEAFLET_CONFIG = {
         'https://mapsneu.wien.gv.at/basemap/bmaporthofoto30cm/normal/google3857/{z}/{y}/{x}.jpeg',
         {'attribution': 'Kartendaten: &copy; <a href="https://basemap.at/">basemap.at</a>'})
     
-    ]
+    ],
+
+    'RESET_VIEW' : False
 }

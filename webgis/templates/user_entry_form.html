@@ -137,13 +137,14 @@
           "project": "{{ project_url }}",
           "definition": document.getElementById("survey-form").getAttribute("definitionid"),
           "survey_data": surveyFieldData,
-          "demographic_data": demographicFieldData,
-          "geom": marker.toGeoJSON()
+          "demographic_data": demographicFieldData
         };
         const urlParams = new URL(window.location.href).searchParams;
         const location_entry_id = urlParams.get('location_entry_id');
         if (location_entry_id != null) {
           object["location_entry_id"] = location_entry_id
+        } else {
+          object["geom"] = JSON.parse("{{ geometry }}".replace(/&quot;/g,'"'));
         }
         var json = JSON.stringify(object);
 
@@ -258,13 +259,12 @@
       window.addEventListener("map:init", function (event) {
         var map = event.detail.map;
         // Zoom to and add marker
-        marker = new L.Marker(["{{ lat }}", "{{ lon }}"], {icon: pinIcon});
-        marker.addTo(map);
+        var geometry = JSON.parse("{{ geometry }}".replace(/&quot;/g,'"'));
 
-        map.flyTo(new L.LatLng("{{ lat }}", "{{ lon }}"), 16, {"animate": false});
-        
-        // Add click event for updating the marker 
-        map.on('click', function(e) { marker.setLatLng(e.latlng); });
+        var geoJson = L.geoJSON(geometry)
+        geoJson.addTo(map)
+
+        map.fitBounds(geoJson.getBounds());
       });
     </script>
   </head>

@@ -3,8 +3,8 @@
 <html>
 
 <head>
-  {% leaflet_js %}
-  {% leaflet_css %}
+  {% leaflet_js plugins="ALL" %}
+  {% leaflet_css plugins="ALL" %}
   <link rel="stylesheet" href="{% static 'bootstrap-5.3.2-dist/css/bootstrap.min.css' %}">
   <link rel="stylesheet" href="{% static 'global.css' %}">
   <link rel="stylesheet" href="{% static 'project.css' %}">
@@ -22,6 +22,38 @@
         cookiePopup.show();
 
       var map = event.detail.map;
+
+      // Add draw tools
+      var drawnItems = new L.FeatureGroup();
+      map.addLayer(drawnItems);
+      var drawControl = new L.Control.Draw({
+          draw: {
+             rectangle: false,
+             circle: false,
+             circlemarker: false
+         }
+      });
+      map.addControl(drawControl);
+
+      let url = '{{ project_url }}'
+      
+      map.on(L.Draw.Event.CREATED, function (e) {
+        var type = e.layerType,
+            layer = e.layer;
+
+        var f = document.getElementById("user_entry_form")
+        f.action=`/${url}/user-entry`;
+
+        var i=document.createElement('input');
+        i.type='hidden';
+        i.name='geometry';
+        i.value=JSON.stringify(layer.toGeoJSON());
+        f.appendChild(i);
+
+        f.submit();
+
+        map.addLayer(layer);
+      });
 
       addInformationControl(map);
 
@@ -58,18 +90,6 @@
         navigator.geolocation.getCurrentPosition(onLocationFound);
       }
 
-      let url = '{{ project_url }}'
-      map.on('click', function (e) {
-        var popLocation = e.latlng;
-        var popup = L.popup({ className: "entry-popup" })
-          .setLatLng(popLocation)
-          .setContent(`
-            <input id="entry-button" type="button" value="Neuer Eintrag" 
-                onclick="window.location.href = '/${url}/user-entry/${popLocation.lat}/${popLocation.lng}'" />
-            `)
-          .openOn(map);
-      });
-
       // Obtain context  variables (declared in views.py)
       var locations = JSON.parse('{{ locations|escapejs }}');
       var entries = JSON.parse('{{ entries|escapejs }}');
@@ -93,19 +113,28 @@
 
       for (id in locations) {
         let location_id = locations[id].pk
-        // Only for obtaining lat/lon, not added to the map
-        L.geoJSON(JSON.parse(locations[id].fields.geom), {
-          onEachFeature: function (feature, layer) {
-            latLng = feature.geometry.coordinates;
-          }
-        });
         var parentDiv = document.createElement("div");
+
+        let geojson = JSON.parse(locations[id].fields.geom);
 
         // Add "add additional survey entry" button
         var surveyEntryButton = document.createElement("button");
         surveyEntryButton.innerHTML = "Diesen Standort ebenfalls bewerten";
-        let create_url = `/${url}/user-entry/${Number(latLng[1])}/${Number(latLng[0])}?location_entry_id=${locations[id].pk}`
-        surveyEntryButton.setAttribute("onclick", "window.location='" + create_url + "';");
+        let create_url = `/${url}/user-entry?location_entry_id=${locations[id].pk}`
+
+        surveyEntryButton.onclick = function (){
+          var f = document.getElementById("user_entry_form")
+          f.action=create_url;
+
+          var i=document.createElement('input');
+          i.type='hidden';
+          i.name='geometry';
+          i.value=JSON.stringify(geojson);
+
+          f.appendChild(i);
+
+          f.submit();
+        };
         surveyEntryButton.setAttribute("class", "btn btn-outline-secondary center-button");
 
         // Create bootstrap "carousel" element
@@ -116,12 +145,8 @@
         parentDiv.appendChild(surveyEntryButton);
 
         var popup = L.popup().setContent(parentDiv);
-        L.geoJSON(
-          JSON.parse(locations[id].fields.geom), {
-          pointToLayer: function (feature, latlng) {
-            return L.marker(latlng, { icon: surveyIcon })
-          }
-        })
+
+        L.geoJSON(geojson)
           .addTo(map)
           .bindPopup(popup, { className: "survey-popup", minHeight: 800, minWidth: 330 })
           .openPopup();
@@ -342,6 +367,10 @@
 <body>
   <h1>{{ project_name }} Web GIS</h1>
   {% leaflet_map "main" %}
+  <form id="user_entry_form" method='POST' target='_blank'>
+    {% csrf_token %}
+  </form>
+  
   <div class="modal fade" id="cookiePopup" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">

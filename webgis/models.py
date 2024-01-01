@@ -1,4 +1,4 @@
-from djgeojson.fields import PointField
+from djgeojson.fields import GeoJSONField
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 
@@ -41,7 +41,7 @@ class ProjectDefinition(models.Model):
 class LocationEntry(models.Model):
 
     project = models.ForeignKey(ProjectDefinition, to_field="url", on_delete=models.CASCADE)
-    geom = PointField()
+    geom = GeoJSONField()
 
 
 class SurveyEntry(models.Model):

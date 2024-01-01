@@ -162,7 +162,7 @@ class SurveyEntryView(TemplateView):
         context = TemplateView.get_context_data(self, *args, **kwargs)
 
         project = ProjectDefinition.objects.get(url=self.project_url)
-        # Add to different context entries for html and python (javascript needs a serialized version)
+
         context["survey_entry_definitions"] = project.survey_entry_definitions.all()
         context["survey_entry_definitions_js"] = serializers.serialize("json", context["survey_entry_definitions"])
 
@@ -171,6 +171,13 @@ class SurveyEntryView(TemplateView):
                 if project.demographic_entry_definition else {}
         
         return context
+    
+
+    def post(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+        context["geometry"] = request.POST["geometry"]
+
+        return self.render_to_response(context)
     
     @property
     def project_url(self):

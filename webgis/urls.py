@@ -29,6 +29,6 @@ urlpatterns = [
     path('<str:project_url>/', views.ProjectView.as_view(), name="project"),
     path('<str:project_url>/create/', views.create_entry, name="project"),
     path('api/entries/<str:project_url>', views.api_get_entries, name="api_entries"),
-    path('<str:project_url>/user-entry/<float:lat>/<float:lon>', views.SurveyEntryView.as_view(), name='user_entry'),
+    path('<str:project_url>/user-entry', views.SurveyEntryView.as_view(), name='user_entry'),
     url(r'^admin/', admin.site.urls),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
