@@ -151,6 +151,7 @@ const type_gui_reflections = {
         params.rowDefinitions.forEach(definition => {
             let tr = document.createElement("tr");
             let tdDef0 = document.createElement("td");
+            tdDef0.className = "sd-descriptor"
             tdDef0.innerHTML = definition[0];
             tr.appendChild(tdDef0);
             

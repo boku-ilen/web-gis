@@ -40,8 +40,14 @@ legend {
 
 /* semantic differential style */
 table { margin-top: 10; margin-left: -35;}
-th {text-align:center;}
-td {
+th {
     text-align:center;
+    width: 5em;
+}
+td {
     padding: 15px;
+    text-align: center;
+}
+.sd-descriptor {
+    text-align: right;
 }
