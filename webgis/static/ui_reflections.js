@@ -278,6 +278,17 @@ const type_display_reflections = {
 
         return container;
     },
+    "MultiLineText": (name, value, fieldDef) => {
+        let container = document.createElement("container");
+
+        let label = document.createElement("label");
+        let description = document.createTextNode(name + ": " + value);
+
+        label.appendChild(description);
+        container.appendChild(label);
+
+        return container;
+    },
     "Spinbox": (name, value, fieldDef) => {
         let container = document.createElement("container");
 
@@ -339,16 +350,11 @@ const type_display_reflections = {
         let list = document.createElement("ul");
         for (const [index, val] of values.entries()) {
             let item = document.createElement("li");
-            
-            if(val == (fieldDef.params.scales.length - 1) / 2)
-                item.innerHTML = 
-                `${fieldDef.params.scales[val]}
-                 ${fieldDef.params.rowDefinitions[index][0]}/${fieldDef.params.rowDefinitions[index][1]}`;
-            else
-                item.innerHTML = 
-                `${fieldDef.params.scales[val]}
-                ${fieldDef.params.rowDefinitions[index][0 ? val < fieldDef.params.scales.length : 1]}`;
 
+            item.innerHTML = fieldDef.params.rowDefinitions[index][0]
+            item.innerHTML += ": "
+            item.innerHTML += fieldDef.params.scales[val]
+            
             list.appendChild(item);
         }
 
