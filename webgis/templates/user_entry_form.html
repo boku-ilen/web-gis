@@ -107,7 +107,6 @@
 
       function createEntry() {
         var surveyFormData = new FormData(document.getElementById("survey-form"));
-
         var surveyFieldData = {};
         surveyFormData.forEach((_, key) => surveyFieldData[key] = surveyFormData.getAll(key));
 
@@ -178,7 +177,7 @@
           const type = fieldDef[field_name].type
           const params = fieldDef[field_name].params 
           const description = fieldDef[field_name].description
-          const gui_elements = type_gui_reflections[type](field_name, params)
+          const gui_elements = type_gui_reflections[type](field_name, params, form)
                     
           form.appendChild(createTextElement(field_name, "legend"))
 

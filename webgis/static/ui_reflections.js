@@ -9,7 +9,7 @@ function createTextElement(text, type="label") {
 
 // How the form to apply a new entry will look like
 const type_gui_reflections = {
-    "Dropdown": (name, params) => {
+    "Dropdown": (name, params, form) => {
         let dropdown = document.createElement("select");
         dropdown.setAttribute("name", name)
         dropdown.type = "select";
@@ -27,7 +27,7 @@ const type_gui_reflections = {
 
         return {"input": dropdown};
     },
-    "Comment": (name, value) => {
+    "Comment": (name, value, form) => {
         let textInput = document.createElement("input");
         textInput.setAttribute("name", name)
         textInput.type = "text";
@@ -36,7 +36,17 @@ const type_gui_reflections = {
 
         return {"input": div};
     },
-    "Spinbox": (name, value) => {
+    "MultiLineText": (name, params, form) => {
+        let textInput = document.createElement("textarea");
+        textInput.setAttribute("name", name)
+        textInput.rows = params["rows"];
+
+        let div = document.createElement("div");
+        div.appendChild(textInput);
+
+        return {"input": div};
+    },
+    "Spinbox": (name, value, form) => {
         let numberInput = document.createElement("input");
         numberInput.setAttribute("name", name)
         numberInput.type = "number";
@@ -45,7 +55,7 @@ const type_gui_reflections = {
 
         return {"input": div};
     },
-    "Image": (name, value) => {
+    "Image": (name, value, form) => {
         let parent = document.createElement("span");
 
         let imageButton = document.createElement("input");
@@ -78,7 +88,7 @@ const type_gui_reflections = {
 
         return {"input": parent};
     },
-    "Radio": (name, params) => {
+    "Radio": (name, params, form) => {
         let fieldset = document.createElement("fieldset");
         fieldset.setAttribute("id", name);  
         fieldset.setAttribute("class", "form-check");
@@ -98,7 +108,7 @@ const type_gui_reflections = {
 
         return {"input": fieldset};
     },
-    "Checkbox": (name, params) => {
+    "Checkbox": (name, params, form) => {
         let fieldset = document.createElement("fieldset");
         fieldset.setAttribute("id", name);   
         fieldset.setAttribute("class", "form-check");
@@ -118,9 +128,9 @@ const type_gui_reflections = {
 
         return {"input": fieldset};
     },
-    "SemanticDifferential": (name, params) => {
+    "SemanticDifferential": (name, params, form) => {
         let fieldset = document.createElement("fieldset");
-        fieldset.setAttribute("id", name);   
+        fieldset.setAttribute("id", name);
         fieldset.setAttribute("class", "form-check");
         let table = document.createElement("table");
         fieldset.appendChild(table);
@@ -137,7 +147,7 @@ const type_gui_reflections = {
 
         // The actual radios in the differential
         let i = 0
-        var keys = []
+        let keys = []
         params.rowDefinitions.forEach(definition => {
             let tr = document.createElement("tr");
             let tdDef0 = document.createElement("td");
@@ -168,7 +178,7 @@ const type_gui_reflections = {
         // Before the input is sent, catch it and alter it to be one entry only instead of multiple,
         // otherwise the server will reject the entry
         // i.e. from radioName1: val1, radioName2: val2 to formName: [val1, val2]
-        document.querySelector("form").addEventListener('formdata', (e) => {
+        form.addEventListener('formdata', (e) => {
             let values = []
             keys.forEach((key) => { 
                 values.push(e.formData.get(key)); 
@@ -179,7 +189,7 @@ const type_gui_reflections = {
 
         return {"input": fieldset}
     },
-    "MatrixQuestions": (name, params) => {
+    "MatrixQuestions": (name, params, form) => {
         let fieldset = document.createElement("fieldset");
         fieldset.setAttribute("id", name);   
         fieldset.setAttribute("class", "form-check");
