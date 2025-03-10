@@ -16,19 +16,20 @@
 
   <script>
     window.addEventListener("map:init", async function (event) {
-      // Show cookie banner if cookies are not set
-      var cookiePopup = new bootstrap.Modal(document.getElementById("cookiePopup"), {});
-      if (getCookie("cookies-allowed") != "yes") 
-        cookiePopup.show();
-
-      // Initially show a disclaimer of information without hovering in a popup like cookies
-      // Close on button click with potential cookie "dont show again"
-      var infoPopup = new bootstrap.Modal(document.getElementById("infoPopup"), {});
-      if (getCookie("info-dont-show") != "yes") 
-        infoPopup.show();
+      // Cookies and disclaimer
+      popups();
 
       var map = event.detail.map;
       addInformationControl(map);
+
+      // Obtain context  variables (declared in views.py)
+      var locations = JSON.parse('{{ locations|escapejs }}');
+      var entries = JSON.parse('{{ entries|escapejs }}');
+      let url = '{{ project_url }}'
+      var surveyIconOptions = {radius: 10}; //L.CircleMarker([10,10], { radius: 10 });
+
+      // Load the entries for each location
+      loadLocationEntries(map, locations, entries, surveyIconOptions, url);
 
       // Initially set view to whole of Austria
       map.setView(new L.LatLng(47.597274, 14.750409), 8);
@@ -40,7 +41,6 @@
         // I have no clue why this is necessary but it is
         bounds_txt = bounds_txt.replace(new RegExp("'", 'g'), '"');
         var multipoint = JSON.parse(bounds_txt);
-        console.log(multipoint.coordinates.length);
         
         if (multipoint.coordinates.length < 2)
           throw "No bounds defined";
@@ -78,7 +78,7 @@
         navigator.geolocation.getCurrentPosition(onLocationFound);
       }
 
-      let url = '{{ project_url }}'
+      // Onclick/tap event for adding new entries
       map.on('click', function (e) {
         var popLocation = e.latlng;
         var popup = L.popup({ className: "entry-popup" })
@@ -89,77 +89,6 @@
             `)
           .openOn(map);
       });
-
-      // Obtain context  variables (declared in views.py)
-      var locations = JSON.parse('{{ locations|escapejs }}');
-      var entries = JSON.parse('{{ entries|escapejs }}');
-
-      // Group the entries for each individual location
-      let entriesForLocations = entries.reduce((entriesForLocations, entry) => {
-        let entriesForLocation = (entriesForLocations[entry.fields.location_entry] || []);
-        entriesForLocation.push(entry);
-        entriesForLocations[entry.fields.location_entry] = entriesForLocation;
-        return entriesForLocations
-      }, {});
-
-      const surveyIcon = L.icon({
-        iconUrl: "{% static 'res/surveys-icon.png' %}",
-        iconSize: [30, 40], // size of the icon
-        iconAnchor: [30 / 2, 40 / 2], // point of the icon which will correspond to marker's location
-        shadowUrl: "{% static 'res/surveys-icon-shadow.png' %}",
-        shadowSize: [50, 30],
-        shadowAnchor: [30 / 2, 30 - 40 / 2]
-      });
-
-      for (id in locations) {
-        let location_id = locations[id].pk
-        // Only for obtaining lat/lon, not added to the map
-        L.geoJSON(JSON.parse(locations[id].fields.geom), {
-          onEachFeature: function (feature, layer) {
-            latLng = feature.geometry.coordinates;
-          }
-        });
-        var parentDiv = document.createElement("div");
-
-        // Add "add additional survey entry" button
-        var surveyEntryButton = document.createElement("button");
-        surveyEntryButton.innerHTML = "Diesen Standort ebenfalls bewerten";
-        let create_url = `/${url}/user-entry/${Number(latLng[1])}/${Number(latLng[0])}?location_entry_id=${locations[id].pk}`
-        surveyEntryButton.setAttribute("onclick", "window.location='" + create_url + "';");
-        surveyEntryButton.setAttribute("class", "btn btn-outline-secondary center-button");
-
-        // Create bootstrap "carousel" element
-        var carousel = new Carousel()
-
-        parentDiv.appendChild(carousel.mainDiv);
-        //parentDiv.appendChild(document.createElement("hr"))
-        parentDiv.appendChild(surveyEntryButton);
-
-        var popup = L.popup().setContent(parentDiv);
-        L.geoJSON(
-          JSON.parse(locations[id].fields.geom), {
-          pointToLayer: function (feature, latlng) {
-            return L.marker(latlng, { icon: surveyIcon })
-          }
-        })
-          .addTo(map)
-          .bindPopup(popup, { className: "survey-popup", minHeight: 800, minWidth: 330 })
-          .openPopup();
-
-        let isFirstForLocation = true;
-        let entriesForLocation = entriesForLocations[location_id]
-        for (entryId in entriesForLocation) {
-          // Obtain title of entry and the field-definition 
-          const title = entriesForLocation[entryId].fields.definition[0];
-          const fieldDef = entriesForLocation[entryId].fields.definition[1];
-
-          // The actual filled out field data
-          const fieldData = entriesForLocation[entryId].fields.field_data;
-
-          carousel.createEntry(title, fieldDef, fieldData, isFirstForLocation)
-          isFirstForLocation = false;
-        }
-      }
     });
 
     class Carousel {
@@ -254,10 +183,90 @@
       }
     }
 
+    function popups() {
+      // Show cookie banner if cookies are not set
+      var cookiePopup = new bootstrap.Modal(document.getElementById("cookiePopup"), {});
+      if (getCookie("cookies-allowed") != "yes") 
+        cookiePopup.show();
+
+      // Initially show a disclaimer of information without hovering in a popup like cookies
+      // Close on button click with potential cookie "dont show again"
+      var infoPopup = new bootstrap.Modal(document.getElementById("infoPopup"), {});
+      if (getCookie("info-dont-show") != "yes") 
+        infoPopup.show();
+    }
+
     function closeModal(id) {
       const cP = document.querySelector(`#${ id }`);
       const modal = bootstrap.Modal.getInstance(cP);    
       modal.hide();
+    }
+
+    function loadLocationEntries(map, locations, entries, surveyIconOptions, url) {
+      // Group the entries for each individual location
+      let entriesForLocations = entries.reduce((entriesForLocations, entry) => {
+        let entriesForLocation = (entriesForLocations[entry.fields.location_entry] || []);
+        entriesForLocation.push(entry);
+        entriesForLocations[entry.fields.location_entry] = entriesForLocation;
+        return entriesForLocations
+      }, {});
+
+      // Obtain context  variables (declared in views.py)
+      for (id in locations) {
+        let location_id = locations[id].pk
+        
+        var latLng;
+        // Only for obtaining lat/lon, not added to the map
+        L.geoJSON(JSON.parse(locations[id].fields.geom), {
+          onEachFeature: function (feature, layer) {
+            latLng = feature.coordinates;
+            if (latLng == undefined)
+              latLng = feature.geometry.coordinates;
+          }
+        });
+        var parentDiv = document.createElement("div");
+        
+        // Add "add additional survey entry" button
+        var surveyEntryButton = document.createElement("button");
+        surveyEntryButton.innerHTML = "Diesen Standort ebenfalls bewerten";
+        let create_url = `/${url}/user-entry/${Number(latLng[1])}/${Number(latLng[0])}?location_entry_id=${locations[id].pk}`
+        surveyEntryButton.setAttribute("onclick", "window.location='" + create_url + "';");
+        surveyEntryButton.setAttribute("class", "btn btn-outline-secondary center-button");
+
+        // Create bootstrap "carousel" element
+        var carousel = new Carousel()
+
+        parentDiv.appendChild(carousel.mainDiv);
+        parentDiv.appendChild(surveyEntryButton);
+
+        let entriesForLocation = entriesForLocations[location_id]
+        console.log(entriesForLocation);
+        
+
+        var popup = L.popup().setContent(parentDiv);
+        L.geoJSON(
+          JSON.parse(locations[id].fields.geom), {
+          pointToLayer: function (feature, latlng) {
+            return L.circleMarker(latlng, { icon: surveyIconOptions, color: "red" }); // TODO: color it according to some entry field
+          }
+        })
+          .addTo(map)
+          .bindPopup(popup, { className: "survey-popup", minHeight: 800, minWidth: 330 })
+          .openPopup();
+
+        let isFirstForLocation = true;
+        for (entryId in entriesForLocation) {
+          // Obtain title of entry and the field-definition 
+          const title = entriesForLocation[entryId].fields.definition[0];
+          const fieldDef = entriesForLocation[entryId].fields.definition[1];
+
+          // The actual filled out field data
+          const fieldData = entriesForLocation[entryId].fields.field_data;
+
+          carousel.createEntry(title, fieldDef, fieldData, isFirstForLocation);
+          isFirstForLocation = false;
+        }
+      }
     }
 
     var unfolded = false;
@@ -413,7 +422,6 @@
       </div>
     </div>
   </div>
-
 </body>
 
 </html>
