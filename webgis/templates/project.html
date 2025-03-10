@@ -21,27 +21,14 @@
       if (getCookie("cookies-allowed") != "yes") 
         cookiePopup.show();
 
+      // Initially show a dsiclaimer of information without hovering in a popup like cookies
+      // Close on button click with potential cookie "dont show again"
+      var infoPopup = new bootstrap.Modal(document.getElementById("infoPopup"), {});
+      if (getCookie("info-dont-show") != "yes") 
+        infoPopup.show();
+
       var map = event.detail.map;
-
       addInformationControl(map);
-
-      // Initially show information without hovering
-      // Close on button click
-      let button = document.createElement("button");
-      button.classList.add("btn");
-      button.classList.add("btn-outline-secondary");
-      button.innerHTML = "Alles klar!";
-      button.style.margin = "10px";
-      button.addEventListener ("click", function() {
-        document.getElementById("info-text").style.display = "none";
-        document.getElementById("info-div").style.width = "48px";
-        document.getElementById("info-div").style.height = "48px";
-        button.style.display = "none";
-      });
-      document.getElementById("info-text").style.display = "block";
-      document.getElementById("info-div").style.width = "60%";
-      document.getElementById("info-div").style.height = "auto";
-      document.getElementById("info-div").appendChild(button)
 
       // Start approx. in the center of Austria, later animate towards the user location if found
       map.flyTo(new L.LatLng(47.597274, 14.750409), 8, { "animate": false });
@@ -234,8 +221,8 @@
       }
     }
 
-    function closeModal() {
-      const cP = document.querySelector('#cookiePopup');
+    function closeModal(id) {
+      const cP = document.querySelector(`#${ id }`);
       const modal = bootstrap.Modal.getInstance(cP);    
       modal.hide();
     }
@@ -361,7 +348,34 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Verweigern</button>
-          <button type="button" onClick='(() => {  setCookie("cookies-allowed", "yes", 7); closeModal(); })()' class="btn btn-primary">Akzeptieren</button>
+          <button type="button" onClick='(() => {  setCookie("cookies-allowed", "yes", 7); closeModal("cookiePopup"); })()' class="btn btn-primary">Akzeptieren</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="infoPopup" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title " id="exampleModalLabel">Disclaimer</h2>
+        </div>
+        <div class="modal-body">
+          <div>
+            {{ project_description }}
+          </div>
+        </div>
+        <div class="modal-footer">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="dontShowAgain">
+            <label class="form-check-label" for="dontShowAgain">
+              Nicht erneut anzeigen
+            </label>
+          </div>
+            <button type="button" onClick='(() => { 
+              const dontShowAgain = document.getElementById("dontShowAgain").checked ? "yes" : "no";
+              setCookie("info-dont-show", dontShowAgain, 60); 
+              closeModal("infoPopup"); 
+            })()' class="btn btn-primary">Verstanden!</button>
         </div>
       </div>
     </div>
