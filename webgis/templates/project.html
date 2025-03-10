@@ -15,13 +15,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <script>
-    window.addEventListener("map:init", function (event) {
+    window.addEventListener("map:init", async function (event) {
       // Show cookie banner if cookies are not set
       var cookiePopup = new bootstrap.Modal(document.getElementById("cookiePopup"), {});
       if (getCookie("cookies-allowed") != "yes") 
         cookiePopup.show();
 
-      // Initially show a dsiclaimer of information without hovering in a popup like cookies
+      // Initially show a disclaimer of information without hovering in a popup like cookies
       // Close on button click with potential cookie "dont show again"
       var infoPopup = new bootstrap.Modal(document.getElementById("infoPopup"), {});
       if (getCookie("info-dont-show") != "yes") 
@@ -30,16 +30,49 @@
       var map = event.detail.map;
       addInformationControl(map);
 
-      // Start approx. in the center of Austria, later animate towards the user location if found
-      map.flyTo(new L.LatLng(47.597274, 14.750409), 8, { "animate": false });
+      // Initially set view to whole of Austria
+      map.setView(new L.LatLng(47.597274, 14.750409), 8);
 
+      // Start at bounds defined in project definition if available, later animate towards the user location if found   
+      try {
+        var bounds_txt = '{{ project_bounds|escapejs }}';
+
+        // I have no clue why this is necessary but it is
+        bounds_txt = bounds_txt.replace(new RegExp("'", 'g'), '"');
+        var multipoint = JSON.parse(bounds_txt);
+        console.log(multipoint.coordinates.length);
+        
+        if (multipoint.coordinates.length < 2)
+          throw "No bounds defined";
+        
+        var points = multipoint.coordinates.slice(0, 2).map(function (coord) {
+          return new L.LatLng(coord[1], coord[0]);
+        });
+        var bounds = new L.LatLngBounds(points);
+
+        // Wait to let the user orientate
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        map.flyToBounds(bounds, { "animate": true, duration: 1.0 });
+
+        // Limit if project settings say so
+        if ('{{ project_limit_to_bounds}}') {
+          // Wait otherwise animation is cancelled
+          await new Promise(resolve => setTimeout(resolve, 1050));
+          map.setMaxBounds(bounds);
+          map.setMinZoom(map.getBoundsZoom(bounds));
+        }
+      } catch (e) {  
+        // Otherwise, start approx. in the center of Austria
+        map.flyTo(new L.LatLng(47.597274, 14.750409), 8, { "animate": false });
+      }
+      
+      // Check for the user location and pan towards it on the map
       function onLocationFound(e) {
         radius = Math.min(Math.max(e.coords.accuracy, 10.0), 1000.0);
         L.circle([e.coords.latitude, e.coords.longitude], { radius: radius, weight: 5 }).addTo(map);
 
         map.flyTo(new L.LatLng(e.coords.latitude, e.coords.longitude), 13, { duration: 1.0 });
       }
-
 
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(onLocationFound);

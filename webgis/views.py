@@ -140,6 +140,8 @@ class ProjectView(TemplateView):
         
         context['project_name'] = project.name
         context['project_description'] = project.description
+        context['project_bounds'] = project.bounds
+        context['project_limit_to_bounds'] = project.limit_to_bounds
         entries = SurveyEntry.objects.filter(project=self.project_url)
         locations = LocationEntry.objects.filter(project=self.project_url)
 

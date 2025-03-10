@@ -1,4 +1,4 @@
-from djgeojson.fields import PointField
+from djgeojson.fields import PointField, MultiPointField
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 
@@ -30,6 +30,8 @@ class ProjectDefinition(models.Model):
     url = models.CharField(max_length=16, unique=True)
     name = models.CharField(max_length=256)
     description = models.TextField()
+    bounds = MultiPointField(null=True, blank=True)
+    limit_to_bounds = models.BooleanField(default=False)
     survey_entry_definitions = models.ManyToManyField(EntryDefinition, related_name="project_surveys")
     demographic_entry_definition = models.ForeignKey(EntryDefinition, on_delete=models.CASCADE, null=True, blank=True, related_name="project_demographics")
 
