@@ -345,7 +345,6 @@ const type_display_reflections = {
     "SemanticDifferential": (name, values, fieldDef) => {
         let container = document.createElement("container");
 
-        console.log(fieldDef);
         values = values[0].split(",");
         let label = document.createElement("label");
         let list = document.createElement("ul");
