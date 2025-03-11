@@ -26,7 +26,7 @@
       var locations = JSON.parse('{{ locations|escapejs }}');
       var entries = JSON.parse('{{ entries|escapejs }}');
       let url = '{{ project_url }}'
-      var surveyIconOptions = {radius: 10}; //L.CircleMarker([10,10], { radius: 10 });
+      var surveyIconOptions = {radius: 500};
 
       // Load the entries for each location
       loadLocationEntries(map, locations, entries, surveyIconOptions, url);
@@ -175,8 +175,6 @@
           let scrollPercentage = 100 * paddingDiv.scrollTop / (paddingDiv.scrollHeight - paddingDiv.clientHeight);
           fadeBotDiv.style.opacity = 1 - (scrollPercentage / 100);
           fadeTopDiv.style.opacity = (scrollPercentage / 100);
-
-          console.log(paddingDiv);
         })
 
         this.elementsCount += 1;
@@ -239,15 +237,20 @@
         parentDiv.appendChild(carousel.mainDiv);
         parentDiv.appendChild(surveyEntryButton);
 
-        let entriesForLocation = entriesForLocations[location_id]
-        console.log(entriesForLocation);
-        
+        var entriesForLocation = entriesForLocations[location_id]
+
+        // FIXME: HARD CODED for biopv!
+        var disputedStrings = entriesForLocation.map((entry) => entry.fields.field_data["Mögliche Anlagengröße an diesem Standort"][0]);
+        var fieldDefinitionDisputed = entriesForLocation[0].fields.definition[1]["Mögliche Anlagengröße an diesem Standort"];        
+        var disputedIndices = disputedStrings.map(str => Math.min(Math.max(fieldDefinitionDisputed.params.values.indexOf(str), 0), 1));
+        var disputed = disputedIndices.reduce((acc, val) => acc + val, 0) / disputedIndices.length;
+        surveyIconOptions.color = `hsl(${disputed * 120}, 100%, 50%)`;
 
         var popup = L.popup().setContent(parentDiv);
         L.geoJSON(
           JSON.parse(locations[id].fields.geom), {
           pointToLayer: function (feature, latlng) {
-            return L.circleMarker(latlng, { icon: surveyIconOptions, color: "red" }); // TODO: color it according to some entry field
+            return L.circle(latlng, surveyIconOptions); // TODO: color it according to some entry field
           }
         })
           .addTo(map)
