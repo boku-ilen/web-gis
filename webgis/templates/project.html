@@ -50,6 +50,18 @@
         });
         var bounds = new L.LatLngBounds(points);
 
+        // Add a rectangle to the map
+        var rectangle = L.rectangle(bounds, {
+          color: "grey",
+          weight: 1,
+          fillOpacity: 0.,
+          // clickthrough
+          interactive: false
+        }).addTo(map);
+
+        // Extend the bounds by 5%
+        bounds = bounds.pad(0.05);
+
         // Wait to let the user orientate
         await new Promise(resolve => setTimeout(resolve, 1000));
         map.flyToBounds(bounds, { "animate": true, duration: 1.0 });
@@ -232,10 +244,9 @@
         surveyEntryButton.setAttribute("class", "btn btn-outline-secondary center-button");
 
         // Create bootstrap "carousel" element
-        var carousel = new Carousel()
+        //var carousel = new Carousel()
 
-        parentDiv.appendChild(carousel.mainDiv);
-        parentDiv.appendChild(surveyEntryButton);
+        
 
         var entriesForLocation = entriesForLocations[location_id]
 
@@ -244,7 +255,29 @@
         var fieldDefinitionDisputed = entriesForLocation[0].fields.definition[1]["Mögliche Anlagengröße an diesem Standort"];        
         var disputedIndices = disputedStrings.map(str => Math.min(Math.max(fieldDefinitionDisputed.params.values.indexOf(str), 0), 1));
         var disputed = disputedIndices.reduce((acc, val) => acc + val, 0) / disputedIndices.length;
+        
+        // Filter the amount of people that agree (1) or disagree (0)
+        // Percent agree
+        var agree_num = disputedIndices.filter((val) => val == 1);
+        // Percent disagree
+        var disagree_num = disputedIndices.filter((val) => val == 0);
         surveyIconOptions.color = `hsl(${disputed * 120}, 100%, 50%)`;
+
+        console.log(disputed)
+        console.log(agree_num.length, disagree_num.length);
+
+
+        // Let people know the disputedness of the location in text
+        var disputedText = document.createElement("div");
+        // Center text
+        disputedText.setAttribute("style", "text-align: center; margin-top: 10px;");
+        disputedText.setAttribute("class", "disputed-text");
+        disputedText.innerHTML = `${((agree_num.length / disputedIndices.length) * 100).toFixed(1)}% der Einträge sehen PV auf dieser Fläche als geeignet<br>
+                                  ${((disagree_num.length / disputedIndices.length) * 100).toFixed(1)}% der Einträge sehen PV auf dieser Fläche als nicht geeignet<br>`
+        parentDiv.appendChild(disputedText);
+        //parentDiv.appendChild(carousel.mainDiv);
+        parentDiv.appendChild(document.createElement("hr"));
+        parentDiv.appendChild(surveyEntryButton);
 
         var popup = L.popup().setContent(parentDiv);
         L.geoJSON(
@@ -258,7 +291,7 @@
           .openPopup();
 
         let isFirstForLocation = true;
-        for (entryId in entriesForLocation) {
+        /*for (entryId in entriesForLocation) {
           // Obtain title of entry and the field-definition 
           const title = entriesForLocation[entryId].fields.definition[0];
           const fieldDef = entriesForLocation[entryId].fields.definition[1];
@@ -268,7 +301,7 @@
 
           carousel.createEntry(title, fieldDef, fieldData, isFirstForLocation);
           isFirstForLocation = false;
-        }
+        }*/
       }
     }
 

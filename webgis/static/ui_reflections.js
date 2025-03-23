@@ -258,134 +258,131 @@ const type_gui_reflections = {
 // How an applied entry will be displayed
 const type_display_reflections = {
     "Dropdown": (name, value, fieldDef) => {
-        let container = document.createElement("container");
-
+        let container = document.createElement("div");
         let label = document.createElement("label");
-        let description = document.createTextNode(name + ": " + value);
+        label.textContent = `${name}:`;
 
-        label.appendChild(description);
+        let selected = document.createElement("p");
+        selected.textContent = fieldDef.params?.values?.includes(value) ? value : "N/A";
+
         container.appendChild(label);
-
+        container.appendChild(selected);
         return container;
     },
     "Comment": (name, value, fieldDef) => {
-        let container = document.createElement("container");
-
+        let container = document.createElement("div");
         let label = document.createElement("label");
-        let description = document.createTextNode(name + ": " + value);
+        label.textContent = `${name}:`;
 
-        label.appendChild(description);
+        let paragraph = document.createElement("p");
+        paragraph.textContent = value;
+
         container.appendChild(label);
-
+        container.appendChild(paragraph);
         return container;
     },
     "MultiLineText": (name, value, fieldDef) => {
-        let container = document.createElement("container");
-
+        let container = document.createElement("div");
         let label = document.createElement("label");
-        let description = document.createTextNode(name + ": " + value);
+        label.textContent = `${name}:`;
 
-        label.appendChild(description);
+        let pre = document.createElement("pre");
+        pre.textContent = value;
+
         container.appendChild(label);
-
+        container.appendChild(pre);
         return container;
     },
     "Spinbox": (name, value, fieldDef) => {
-        let container = document.createElement("container");
-
+        let container = document.createElement("div");
         let label = document.createElement("label");
-        let description = document.createTextNode(name + ": " + value);
+        label.textContent = `${name}:`;
 
-        label.appendChild(description);
+        let valueNode = document.createElement("p");
+        valueNode.textContent = value;
+
         container.appendChild(label);
-
+        container.appendChild(valueNode);
         return container;
     },
     "Image": (name, value, fieldDef) => {
-        let container = document.createElement("container");
-
+        let container = document.createElement("div");
         let label = document.createElement("label");
-        let description = document.createTextNode(name + ": ");
+        label.textContent = `${name}:`;
 
         const image = new Image();
-        image.style.maxWidth = 200;
-        image.style.maxHeight = 200;
-        image.src = value;  // a Base64 encoded String, e.g. "data:image/jpg;base64,BINARY"
+        image.style.maxWidth = "200px";
+        image.style.maxHeight = "200px";
+        image.src = value;
 
-        label.appendChild(description);
-        label.appendChild(document.createElement("br"))
-        label.appendChild(image);
         container.appendChild(label);
-
+        container.appendChild(image);
         return container;
     },
     "Radio": (name, value, fieldDef) => {
-        let container = document.createElement("container");
-
+        let container = document.createElement("div");
         let label = document.createElement("label");
-        let description = document.createTextNode(name + ": " + value);
+        label.textContent = `${name}:`;
 
-        label.appendChild(description);
+        let val = document.createElement("p");
+        val.textContent = value;
+
         container.appendChild(label);
-
+        container.appendChild(val);
         return container;
     },
     "Checkbox": (name, value, fieldDef) => {
-        let container = document.createElement("container");
-
+        let container = document.createElement("div");
         let label = document.createElement("label");
-        let description = document.createTextNode(name + ": " + value);
+        label.textContent = `${name}:`;
 
-        label.appendChild(description);
+        let list = document.createElement("ul");
+        (Array.isArray(value) ? value : value.split(",")).forEach(v => {
+            let item = document.createElement("li");
+            item.textContent = v;
+            list.appendChild(item);
+        });
+
         container.appendChild(label);
-
+        container.appendChild(list);
         return container;
     },
-    // TODO: proper display
     "SemanticDifferential": (name, values, fieldDef) => {
-        let container = document.createElement("container");
-
-        values = values[0].split(",");
+        let container = document.createElement("div");
         let label = document.createElement("label");
+        label.textContent = `${name}:`;
+
         let list = document.createElement("ul");
-        for (const [index, val] of values.entries()) {
+        const splitValues = values[0].split(",");
+
+        fieldDef.params.rowDefinitions.forEach((definition, index) => {
             let item = document.createElement("li");
-
-            item.innerHTML = fieldDef.params.rowDefinitions[index][0]
-            item.innerHTML += ": "
-            item.innerHTML += fieldDef.params.scales[val]
-            
+            let val = fieldDef.params.scales[splitValues[index]] || "-";
+            item.textContent = `${definition[0]} – ${definition[1]}: ${val}`;
             list.appendChild(item);
-        }
+        });
 
-        let description = document.createTextNode(name + ": ");
-        label.appendChild(description);
-        
-        label.appendChild(list);
         container.appendChild(label);
-
+        container.appendChild(list);
         return container;
     },
-    // TODO: proper display
     "MatrixQuestions": (name, values, fieldDef) => {
-        let container = document.createElement("container");
-
-        values = values[0].split(",");
+        let container = document.createElement("div");
         let label = document.createElement("label");
+        label.textContent = `${name}:`;
+
         let list = document.createElement("ul");
-        for (const [index, val] of values.entries()) {
+        const splitValues = values[0].split(",");
+
+        fieldDef.params.questions.forEach((question, index) => {
             let item = document.createElement("li");
-            item.innerText = `${fieldDef.params.questions[index]}: ${fieldDef.params.scales[val]}`;
+            let val = fieldDef.params.scales[splitValues[index]] || "-";
+            item.textContent = `${question}: ${val}`;
             list.appendChild(item);
-        }
+        });
 
-        let description = document.createTextNode(name + ": ");
-        label.appendChild(description);
-        
-        label.appendChild(list);
         container.appendChild(label);
-
+        container.appendChild(list);
         return container;
     }
-} 
-
+}
