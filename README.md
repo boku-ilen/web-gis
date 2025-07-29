@@ -14,7 +14,7 @@ python3 manage.py createsuperuser
 python3 manage.py runserver
 ```
 
-In the admin interface (127.0.0.1:8000/admin/webgis), entries and definitions can be created for testing.
+In the admin interface (127.0.0.1: 8000/admin/webgis), entries and definitions can be created for testing.
 
 ## models
 
@@ -74,27 +74,43 @@ The basic architecture is a modular connection of:
     "params": {}
   },
   "Semantic": {
-     "type": "SemanticDifferential",
-     "params": {
-       "scales": [
-         "very",
-         "somewhat",
-         "neither/nor",
-         "somewhat",
-         "very"
-       ],
-       "rowDefinitions": [
-         [
-           "experienced",
-           "inexperienced"
-         ],
-         [
-            "effective",
-            "ineffective"
-         ]
-       ]
-     }
-   }
+    "type": "SemanticDifferential",
+    "params": {
+      "scales": [
+        "very",
+        "somewhat",
+        "neither/nor",
+        "somewhat",
+        "very"
+      ],
+      "rowDefinitions": [
+        [
+          "experienced",
+          "inexperienced"
+        ],
+        [
+          "effective",
+          "ineffective"
+        ]
+      ]
+    }
+  },
+  "MatrixQuestions": {
+    "type": "MatrixQuestions",
+    "params": {
+      "scales": [
+        "very",
+        "somewhat",
+        "neither/nor",
+        "somewhat",
+        "very"
+      ],
+      "questions": [
+        "Is this good?",
+        "Is this bad?"
+      ]
+    }
+  }
 }
 ```
 
