@@ -72,7 +72,29 @@ The basic architecture is a modular connection of:
   "Bild": {
     "type": "Image",
     "params": {}
-  }
+  },
+  "Semantic": {
+     "type": "SemanticDifferential",
+     "params": {
+       "scales": [
+         "very",
+         "somewhat",
+         "neither/nor",
+         "somewhat",
+         "very"
+       ],
+       "rowDefinitions": [
+         [
+           "experienced",
+           "inexperienced"
+         ],
+         [
+            "effective",
+            "ineffective"
+         ]
+       ]
+     }
+   }
 }
 ```
 
