@@ -14,10 +14,9 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf import settings
-from django.conf.urls import url
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path, register_converter
+from django.urls import re_path, path, register_converter
 from django.views.generic import TemplateView
 
 from . import converters, views
@@ -25,10 +24,10 @@ from . import converters, views
 register_converter(converters.FloatUrlParameterConverter, 'float')
 
 urlpatterns = [
-    url(r'^$', views.HomeView.as_view(), name='home'),
+    re_path(r'^$', views.HomeView.as_view(), name='home'),
     path('<str:project_url>/', views.ProjectView.as_view(), name="project"),
     path('<str:project_url>/create/', views.create_entry, name="project"),
     path('api/entries/<str:project_url>', views.api_get_entries, name="api_entries"),
     path('<str:project_url>/user-entry/<float:lat>/<float:lon>', views.SurveyEntryView.as_view(), name='user_entry'),
-    url(r'^admin/', admin.site.urls),
+    re_path(r'^admin/', admin.site.urls),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

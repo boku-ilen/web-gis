@@ -173,13 +173,14 @@
         let fieldDef = entryDef.fields.field_definition
 
         // for each field in entry def load the gui
-        for (field_name in fieldDef) {
-          const type = fieldDef[field_name].type
-          const params = fieldDef[field_name].params 
-          const description = fieldDef[field_name].description
-          const gui_elements = type_gui_reflections[type](field_name, params, form)
+        for (i in fieldDef) {
+          const question = fieldDef[i].question
+          const type = fieldDef[i].type
+          const params = fieldDef[i].params 
+          const description = fieldDef[i].description
+          const gui_elements = type_gui_reflections[type](i, params, form)
                     
-          form.appendChild(createTextElement(field_name, "legend"))
+          form.appendChild(createTextElement(question, "legend"))
 
           if (description) {
             let description_element = document.createElement("div")
