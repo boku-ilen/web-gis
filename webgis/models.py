@@ -152,14 +152,13 @@ class EntryDefinition(models.Model):
                 },
                 "params": {
                     "oneOf": [
-                        { "title": "Checkbox", "$ref": "#/$defs/Checkbox_params", "default": {"kind": "Checkbox"} },
                         { "title": "Comment", "$ref": "#/$defs/Comment_params", "default": {"kind": "Comment"} },
                         { "title": "MultiLineText", "$ref": "#/$defs/MultiLineText_params", "default": {"kind": "MultiLineText"} },
                         { "title": "Dropdown", "$ref": "#/$defs/Dropdown_params", "default": {"kind": "Dropdown"} },
                         { "title": "Spinbox", "$ref": "#/$defs/Spinbox_params", "default": {"kind": "Spinbox"} },
                         { "title": "Image", "$ref": "#/$defs/Image_params", "default": {"kind": "Image"} },
                         { "title": "Radio", "$ref": "#/$defs/Radio_params", "default": {"kind": "Radio"} },
-                        
+                        { "title": "Checkbox", "$ref": "#/$defs/Checkbox_params", "default": {"kind": "Checkbox"} },
                         { "title": "SemanticDifferential", "$ref": "#/$defs/SemanticDifferential_params", "default": {"kind": "SemanticDifferential"} },
                         { "title": "MatrixQuestions", "$ref": "#/$defs/MatrixQuestions_params", "default": {"kind": "MatrixQuestions"} },
                     ]
