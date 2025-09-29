@@ -227,7 +227,7 @@
         
         var latLng;
         // Only for obtaining lat/lon, not added to the map
-        L.geoJSON(JSON.parse(locations[id].fields.geom), {
+        L.geoJSON(locations[id].fields.geom, {
           onEachFeature: function (feature, layer) {
             latLng = feature.coordinates;
             if (latLng == undefined)
@@ -246,13 +246,19 @@
         // Create bootstrap "carousel" element
         //var carousel = new Carousel()
 
-        
-
         var entriesForLocation = entriesForLocations[location_id]
+        if (entriesForLocation === undefined || entriesForLocation === null) {
+          continue
+        }
 
         // FIXME: HARD CODED for biopv!
-        var disputedStrings = entriesForLocation.map((entry) => entry.fields.field_data["Mögliche Anlagengröße an diesem Standort"][0]);
-        var fieldDefinitionDisputed = entriesForLocation[0].fields.definition[1]["Mögliche Anlagengröße an diesem Standort"];        
+        var fieldDefinitionDisputed = entriesForLocation[0].fields.definition[1].filter((def) => def.question == "Dieser Ort ist für mich eine ...");   
+        if (fieldDefinitionDisputed === undefined || fieldDefinitionDisputed.length == 0) {
+          continue
+        }
+        fieldDefinitionDisputed = fieldDefinitionDisputed[0]
+        var disputedStrings = entriesForLocation.map((entry) => entry.fields.field_data["Dieser Ort ist für mich eine ..."][0]);
+        
         var disputedIndices = disputedStrings.map(str => Math.min(Math.max(fieldDefinitionDisputed.params.values.indexOf(str), 0), 1));
         var disputed = disputedIndices.reduce((acc, val) => acc + val, 0) / disputedIndices.length;
         
@@ -262,9 +268,6 @@
         // Percent disagree
         var disagree_num = disputedIndices.filter((val) => val == 0);
         surveyIconOptions.color = `hsl(${disputed * 120}, 100%, 50%)`;
-
-        console.log(disputed)
-        console.log(agree_num.length, disagree_num.length);
 
 
         // Let people know the disputedness of the location in text
@@ -279,9 +282,11 @@
         parentDiv.appendChild(document.createElement("hr"));
         parentDiv.appendChild(surveyEntryButton);
 
+        radius = entriesForLocation.reduce((acc, entry) => acc + Number(entry.fields.field_data["Radius"]), 0) / entriesForLocation.length;
+        surveyIconOptions["radius"] = radius !== NaN || radius !== null || radius !== 0 ? radius : 500
+
         var popup = L.popup().setContent(parentDiv);
-        L.geoJSON(
-          JSON.parse(locations[id].fields.geom), {
+        L.geoJSON(locations[id].fields.geom, {
           pointToLayer: function (feature, latlng) {
             return L.circle(latlng, surveyIconOptions); // TODO: color it according to some entry field
           }

@@ -152,6 +152,7 @@
         
         request.onload = () => {
           response = JSON.parse(request.response)
+          console.log(response)
 
           if (response["success"] == true) {
             location.href = "/{{ project_url }}/"
@@ -178,7 +179,7 @@
           const type = fieldDef[i].type
           const params = fieldDef[i].params 
           const description = fieldDef[i].description
-          const gui_elements = type_gui_reflections[type](i, params, form)
+          const gui_elements = type_gui_reflections[type](question, params, form)
                     
           form.appendChild(createTextElement(question, "legend"))
 

@@ -21,13 +21,17 @@ def api_get_entries(request: WSGIRequest, project_url):
 
 # Returns an is_valid boolean, an error message, and the related attribute title
 def validate_entry_data(entry_data, definition_data):
+    questions = map(lambda definition_part: definition_part["question"], definition_data)
     # Check whether there is superfluous data
     for attribute_title, values in entry_data.items():
-        if not attribute_title in definition_data:
+
+        if not attribute_title in questions:
             return False, "UNDEFINED_ENTRY", attribute_title
 
     # Check if all required attributes from the definition are present
-    for attribute_title, attribute_def in definition_data.items():
+    for definition_part in definition_data:
+        attribute_title = definition_part["question"]
+        attribute_def = definition_part
         attribute_type = attribute_def["type"]
 
         if attribute_type == "Checkbox":
