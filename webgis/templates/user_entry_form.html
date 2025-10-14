@@ -42,7 +42,7 @@
 
               <hr>
               
-              <div id="save-input-div"><input type="checkbox" id="save-input-checkbox"> Eingaben merken und nächstes mal vorausfüllen</div>
+              <div id="save-input-div"><input type="checkbox" id="save-input-checkbox"> Angaben zur Person merken (diese werden dann beim nächstes Mal vorausgefüllt)</div>
 
               <button class="btn btn-outline-secondary" onclick="showSurvey()">Zurück</button>
               <button class="btn btn-outline-primary" onclick="createEntry()">Absenden</button>
@@ -117,8 +117,6 @@
         // Should we save the demographic input as a cookie?
         var should_save_input = document.getElementById("save-input-checkbox").checked;
 
-        console.log(should_save_input);
-
         // Check whether we're allowed to save cookies
         // (the checkbox should be hidden otherwise, but just to be save, check again)
         if (getCookie("cookies-allowed") == "yes") {
@@ -152,7 +150,6 @@
         
         request.onload = () => {
           response = JSON.parse(request.response)
-          console.log(response)
 
           if (response["success"] == true) {
             location.href = "/{{ project_url }}/"
