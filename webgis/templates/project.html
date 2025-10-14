@@ -236,79 +236,124 @@
               latLng = feature.geometry.coordinates;
           }
         });
+        /* 
         var parentDiv = document.createElement("div");
         
         // Add "add additional survey entry" button
         var surveyEntryButton = document.createElement("button");
-        surveyEntryButton.innerHTML = "Diesen Standort ebenfalls bewerten";
+        surveyEntryButton.innerHTML = "Diesen Standort bewerten";
         let create_url = `/${url}/user-entry/${Number(latLng[1])}/${Number(latLng[0])}?location_entry_id=${locations[id].pk}`
         surveyEntryButton.setAttribute("onclick", "window.location='" + create_url + "';");
         surveyEntryButton.setAttribute("class", "btn btn-outline-secondary center-button");
 
         // Create bootstrap "carousel" element
         //var carousel = new Carousel()
+        */
 
         var entriesForLocation = entriesForLocations[location_id]
         if (entriesForLocation === undefined || entriesForLocation === null) {
           continue
         }
 
-        // FIXME: HARD CODED for biopv!
-        var fieldDefinitionDisputed = entriesForLocation[0].fields.definition[1].filter((def) => def.question == "Dieser Ort ist für mich eine ...");   
-        if (fieldDefinitionDisputed === undefined || fieldDefinitionDisputed.length == 0) {
-          continue
-        }
-        fieldDefinitionDisputed = fieldDefinitionDisputed[0]
-        var disputedStrings = entriesForLocation.map((entry) => entry.fields.field_data["Dieser Ort ist für mich eine ..."][0]);
-        
-        var disputedIndices = disputedStrings.map(str => Math.min(Math.max(fieldDefinitionDisputed.params.values.indexOf(str), 0), 1));
-        var disputed = disputedIndices.reduce((acc, val) => acc + val, 0) / disputedIndices.length;
-        
-        // Filter the amount of people that agree (1) or disagree (0)
-        // Percent agree
-        var agree_num = disputedIndices.filter((val) => val == 1);
-        // Percent disagree
-        var disagree_num = disputedIndices.filter((val) => val == 0);
-        surveyIconOptions.color = `hsl(${disputed * 120}, 100%, 50%)`;
-
-
+        /*
+        // FIXME: HARDCODE FOR BIOPV
+        let disputedResult = computeDispute(entriesForLocation[0].fields.definition[1], entriesForLocation, "Dieser Ort ist für mich eine ...")
+  
         // Let people know the disputedness of the location in text
         var disputedText = document.createElement("div");
         // Center text
         disputedText.setAttribute("style", "text-align: center; margin-top: 10px;");
         disputedText.setAttribute("class", "disputed-text");
-        disputedText.innerHTML = `${((agree_num.length / disputedIndices.length) * 100).toFixed(1)}% der Einträge sehen PV auf dieser Fläche als geeignet<br>
-                                  ${((disagree_num.length / disputedIndices.length) * 100).toFixed(1)}% der Einträge sehen PV auf dieser Fläche als nicht geeignet<br>`
+        disputedText.innerHTML = `${((disputedResult.agree.length / disputedResult.disputedIndices.length) * 100).toFixed(1)}% der Einträge sehen PV auf dieser Fläche als geeignet<br>
+                                  ${((disputedResult.disagree.length / disputedResult.disputedIndices.length) * 100).toFixed(1)}% der Einträge sehen PV auf dieser Fläche als nicht geeignet<br>`
         parentDiv.appendChild(disputedText);
         //parentDiv.appendChild(carousel.mainDiv);
         parentDiv.appendChild(document.createElement("hr"));
         parentDiv.appendChild(surveyEntryButton);
 
-        radius = entriesForLocation.reduce((acc, entry) => acc + Number(entry.fields.field_data["Radius"]), 0) / entriesForLocation.length;
-        surveyIconOptions["radius"] = radius !== NaN || radius !== null || radius !== 0 ? radius : 500
-
         var popup = L.popup().setContent(parentDiv);
+        */
+        
+        const pinIcon = L.icon({
+          iconUrl: "{% static 'res/map-pin.svg' %}",
+          iconSize:     [35, 35], // size of the icon
+          iconAnchor:   [35 / 2, 35], // point of the icon which will correspond to marker's location
+
+        });
         L.geoJSON(locations[id].fields.geom, {
           pointToLayer: function (feature, latlng) {
-            return L.circle(latlng, surveyIconOptions); // TODO: color it according to some entry field
+            return L.marker(latlng, {icon: pinIcon}); // TODO: color it according to some entry field
           }
         })
-          .addTo(map)
-          .bindPopup(popup, { className: "survey-popup", minHeight: 800, minWidth: 330 })
-          .openPopup();
+        .addTo(map)
+        //.bindPopup(popup, { className: "survey-popup", minHeight: 800, minWidth: 330 })
+        //.openPopup();
 
         let isFirstForLocation = true;
-        /*for (entryId in entriesForLocation) {
+        // Group by radius
+        let groupedByRadius = Object.groupBy(entriesForLocation, ({ fields }) => fields.field_data["Welches räumliche Umfeld betrifft meine Entscheidung ..."])
+
+        let features = []
+        for (const [key, value] of Object.entries(groupedByRadius)) {
           // Obtain title of entry and the field-definition 
-          const title = entriesForLocation[entryId].fields.definition[0];
-          const fieldDef = entriesForLocation[entryId].fields.definition[1];
+          //const title = entriesForLocation[entryId].fields.definition[0];
+          //const fieldDef = entriesForLocation[entryId].fields.definition[1];
+
+          let radiusText = key
+          let item = value
+          let disputeResult = computeDispute(item[0].fields.definition[1], item, "Dieser Ort ist für mich eine ...")
 
           // The actual filled out field data
-          const fieldData = entriesForLocation[entryId].fields.field_data;
+          //const fieldData = entriesForLocation[entryId].fields.field_data;
+          //const radiusText = fieldData["Welches räumliche Umfeld betrifft meine Entscheidung ..."][0]
+          //const agreeText = fieldData["Dieser Ort ist für mich eine ..."][0]
 
-          carousel.createEntry(title, fieldDef, fieldData, isFirstForLocation);
+          let radius = 50
+          
+          if (radiusText.includes("500")) 
+            radius = 500 
+          else if (radiusText.includes("2000"))
+            radius = 2000
+          
+          surveyIconOptions["radius"] = radius
+          surveyIconOptions["stroke"] = false
+          //surveyIconOptions["color"] = `hsl(${disputeResult["disputed"] * 120}, 100%, 50%)`;
+          //surveyIconOptions["opacity"] = 0.3
+          surveyIconOptions["fillOpacity"] = 0.25
+          surveyIconOptions["fillColor"] =  disputeResult["disputed"] > 0. ? `rgba(255, 0, 0, 1)` : `rgba(0, 255, 0, 1)`;
+
+          let coords = locations[id].fields.geom.geometry.coordinates;
+          let circle = L.circle(L.latLng(coords[1], coords[0]), surveyIconOptions).addTo(map);
+
+          //carousel.createEntry(title, fieldDef, fieldData, isFirstForLocation);
           isFirstForLocation = false;
-        }*/
+
+          features.push(circle)
+        }
+        let circleGroup = L.featureGroup(features).addTo(map)
+        circleGroup.getPane().style.opacity = 0.75;
+        /*circleGroup.eachLayer((layer) =>  {
+            layer["_baseRadius"] = layer["_mRadius"]
+        })
+
+      
+        let zoom_dict = {
+          50: 0.01,
+          500: 0.002,
+          2000: 0.00075
+        }
+        
+        map.on("zoomend", (event) => {        
+          circleGroup.eachLayer((layer) =>  {
+            if(map._zoom < 12) {
+              const zoom_by = zoom_dict[layer["_baseRadius"]]
+              layer._radius=layer["_baseRadius"] * zoom_by * map._zoom
+              layer._radiusY=layer["_baseRadius"] * zoom_by * map._zoom
+            } else {
+              layer._mRadius = layer["_baseRadius"] 
+            }
+          })
+        })*/
       }
     }
 
@@ -407,6 +452,26 @@
         }
       });
       map.addControl(new Button());
+    }
+
+    function computeDispute(definition, entries, queryString) {
+      var fieldDefinitionDisputed = definition.filter((def) => def.question == queryString);
+      if (fieldDefinitionDisputed === undefined || fieldDefinitionDisputed.length == 0) {
+        return
+      }
+      fieldDefinitionDisputed = fieldDefinitionDisputed[0]
+      var disputedStrings = entries.map((entry) => entry.fields.field_data[queryString][0]);
+
+      var disputedIndices = disputedStrings.map(str => Math.min(Math.max(fieldDefinitionDisputed.params.values.indexOf(str), 0), 1));
+      var disputed = disputedIndices.reduce((acc, val) => acc + val, 0) / disputedIndices.length;
+      
+      // Filter the amount of people that agree (1) or disagree (0)
+      // Percent agree
+      var agree_num = disputedIndices.filter((val) => val == 1);
+      // Percent disagree
+      var disagree_num = disputedIndices.filter((val) => val == 0);
+      
+      return { "disputed": disputed, "agree": agree_num, "disagree": disagree_num, "disputedIndices": disputedIndices }
     }
   </script>
 </head>
