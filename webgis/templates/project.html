@@ -96,8 +96,10 @@
         var popup = L.popup({ className: "entry-popup" })
           .setLatLng(popLocation)
           .setContent(`
-            <input id="entry-button" type="button" value="Neuer Eintrag" 
-                onclick="window.location.href = '/${url}/user-entry/${popLocation.lat}/${popLocation.lng}'" />
+            <div class="container p-3">
+              <button onclick="window.location.href='/${url}/user-entry/${popLocation.lat}/${popLocation.lng}'" ;" 
+                class="btn btn-outline-secondary center-button ">Diesen Standort bewerten</button>
+            </div>
             `)
           .openOn(map);
       });
