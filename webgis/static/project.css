@@ -40,6 +40,10 @@ html, body{
     margin: 0px 0px;
 }
 
+path.leaflet-interactive {
+     mix-blend-mode: screen;
+}
+
 .leaflet-popup-content-wrapper{
     background-color: white;
     opacity: 0.9;
